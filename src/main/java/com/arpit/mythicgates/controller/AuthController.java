@@ -1,7 +1,6 @@
 package com.arpit.mythicgates.controller;
 
-import com.arpit.mythicgates.model.dto.auth.RegisterRequest;
-import com.arpit.mythicgates.model.dto.auth.RegisterResponse;
+import com.arpit.mythicgates.model.dto.auth.*;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.AuthService;
 import jakarta.validation.Valid;
@@ -24,4 +23,19 @@ public class AuthController {
     ) {
         return authService.register(request);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+        return authService.login(request);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<LoginResponse>> refresh(
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        return authService.refreshToken(request);
+    }
+
 }

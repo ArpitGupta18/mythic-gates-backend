@@ -6,6 +6,8 @@ import com.arpit.mythicgates.exception.custom.UserAlreadyExistsException;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.response.ApiResponseUtil;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -39,6 +41,16 @@ public class GlobalExceptionHandler {
         return ApiResponseUtil.notFound(null, ex.getMessage());
     }
 
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<String>> handleBadCredentialsException(BadCredentialsException ex) {
+        return ApiResponseUtil.unauthorized("Username or password is incorrect", ex.getMessage());
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ApiResponse<String>> handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
+        return ApiResponseUtil.forbidden("Access denied", ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidation(
             MethodArgumentNotValidException ex) {
@@ -55,6 +67,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<String>> handleGeneric(Exception ex) {
         ex.printStackTrace();
-        return ApiResponseUtil.serverError(null,"Something Went Wrong");
+        return ApiResponseUtil.serverError(null, "Something Went Wrong");
     }
 }
