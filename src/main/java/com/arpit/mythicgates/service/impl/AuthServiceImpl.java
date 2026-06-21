@@ -43,7 +43,7 @@ public class AuthServiceImpl implements AuthService {
 
         User user = AuthMapper.toEntity(request);
 
-        user.setPublicId(UuidGenerator.generator());
+        user.setPublicId(UuidGenerator.generate());
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(Role.ROLE_USER);
         user.setGold(gold);

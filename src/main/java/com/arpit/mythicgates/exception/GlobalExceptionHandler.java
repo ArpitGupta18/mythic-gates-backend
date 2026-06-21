@@ -1,8 +1,6 @@
 package com.arpit.mythicgates.exception;
 
-import com.arpit.mythicgates.exception.custom.BadRequestException;
-import com.arpit.mythicgates.exception.custom.ResourceNotFoundException;
-import com.arpit.mythicgates.exception.custom.UserAlreadyExistsException;
+import com.arpit.mythicgates.exception.custom.*;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.response.ApiResponseUtil;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +24,11 @@ public class GlobalExceptionHandler {
         return ApiResponseUtil.conflict(null, ex.getMessage());
     }
 
+    @ExceptionHandler(CharacterAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<String>> handleCharacterExists(CharacterAlreadyExistsException ex) {
+        return ApiResponseUtil.conflict(null, ex.getMessage());
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<String>> handleNotFound(ResourceNotFoundException ex) {
         return ApiResponseUtil.notFound(null, ex.getMessage());
@@ -33,6 +36,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiResponse<String>> handleBadRequest(BadRequestException ex) {
+        return ApiResponseUtil.badRequest(null, ex.getMessage());
+    }
+
+    @ExceptionHandler(ImageUploadFailedException.class)
+    public ResponseEntity<ApiResponse<String>> handleImageUploadFail(ImageUploadFailedException ex) {
         return ApiResponseUtil.badRequest(null, ex.getMessage());
     }
 
