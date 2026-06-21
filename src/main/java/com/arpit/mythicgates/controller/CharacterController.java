@@ -40,4 +40,13 @@ public class CharacterController {
     ) {
         return characterService.updateCharacter(id, request, image);
     }
+
+    @DeleteMapping("/admin/characters/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteCharacter(
+            @PathVariable UUID id
+    ) {
+        return characterService.deleteCharacter(id);
+    }
+
 }

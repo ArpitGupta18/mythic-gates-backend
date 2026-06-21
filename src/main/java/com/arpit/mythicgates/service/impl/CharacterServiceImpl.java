@@ -109,4 +109,16 @@ public class CharacterServiceImpl implements CharacterService {
 
         return ApiResponseUtil.success("Character updated successfully", CharacterMapper.toCharacterResponseDto(updatedCharacter));
     }
+
+    @Override
+    public ResponseEntity<ApiResponse<Void>> deleteCharacter(UUID characterId) {
+        Character character = characterRepository.findByPublicId(characterId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Character doesn't exist"));
+
+        characterRepository.delete(character);
+        return ApiResponseUtil.success("Character deleted successfully", null);
+    }
+
+
 }

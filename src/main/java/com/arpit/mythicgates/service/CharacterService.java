@@ -14,4 +14,6 @@ public interface CharacterService {
     ResponseEntity<ApiResponse<CharacterResponse>> addCharacter(CharacterRequest request, MultipartFile image);
 
     ResponseEntity<ApiResponse<CharacterResponse>> updateCharacter(UUID characterId, UpdateCharacterRequest request, MultipartFile image);
+
+    ResponseEntity<ApiResponse<Void>> deleteCharacter(UUID characterId);
 }
