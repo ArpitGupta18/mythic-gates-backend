@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -120,5 +121,23 @@ public class CharacterServiceImpl implements CharacterService {
         return ApiResponseUtil.success("Character deleted successfully", null);
     }
 
+    @Override
+    public ResponseEntity<ApiResponse<List<CharacterResponse>>> getAllCharacters() {
+        List<Character> characters = characterRepository.findAll();
 
+        List<CharacterResponse> response = characters.stream().map(
+                CharacterMapper::toCharacterResponseDto
+        ).toList();
+
+        return ApiResponseUtil.success("All characters fetched successfully", response);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<CharacterResponse>> getCharacter(UUID characterId) {
+        Character character = characterRepository.findByPublicId(characterId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Character doesn't exist"));
+
+        return ApiResponseUtil.success("Character fetched successfully", CharacterMapper.toCharacterResponseDto(character));
+    }
 }

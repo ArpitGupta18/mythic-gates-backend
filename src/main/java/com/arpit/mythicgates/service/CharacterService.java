@@ -8,6 +8,7 @@ import com.cloudinary.Api;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface CharacterService {
@@ -16,4 +17,8 @@ public interface CharacterService {
     ResponseEntity<ApiResponse<CharacterResponse>> updateCharacter(UUID characterId, UpdateCharacterRequest request, MultipartFile image);
 
     ResponseEntity<ApiResponse<Void>> deleteCharacter(UUID characterId);
+
+    ResponseEntity<ApiResponse<List<CharacterResponse>>> getAllCharacters();
+
+    ResponseEntity<ApiResponse<CharacterResponse>> getCharacter(UUID characterId);
 }

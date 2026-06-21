@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -49,4 +50,17 @@ public class CharacterController {
         return characterService.deleteCharacter(id);
     }
 
+    @GetMapping("/characters")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<ApiResponse<List<CharacterResponse>>> getAllCharacters() {
+        return characterService.getAllCharacters();
+    }
+
+    @GetMapping("/characters/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<ApiResponse<CharacterResponse>> getCharacter(
+            @PathVariable("id") UUID characterId
+    ) {
+        return characterService.getCharacter(characterId);
+    }
 }
