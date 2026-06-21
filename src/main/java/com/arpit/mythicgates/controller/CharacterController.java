@@ -5,7 +5,6 @@ import com.arpit.mythicgates.model.dto.character.CharacterResponse;
 import com.arpit.mythicgates.model.dto.character.UpdateCharacterRequest;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.CharacterService;
-import com.cloudinary.Api;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -63,4 +62,6 @@ public class CharacterController {
     ) {
         return characterService.getCharacter(characterId);
     }
+
+
 }
