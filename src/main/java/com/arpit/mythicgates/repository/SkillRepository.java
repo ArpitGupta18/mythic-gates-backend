@@ -11,4 +11,6 @@ import java.util.UUID;
 @Repository
 public interface SkillRepository extends JpaRepository<Skill, Long> {
     boolean existsByCharacterPublicIdAndTypeAndSlot(UUID characterId, SkillType type, Integer slot);
+
+    boolean existsByCharacterPublicId(UUID characterId);
 }

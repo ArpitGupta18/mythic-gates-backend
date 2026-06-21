@@ -2,7 +2,9 @@ package com.arpit.mythicgates.service.impl;
 
 import com.arpit.mythicgates.exception.custom.BadRequestException;
 import com.arpit.mythicgates.exception.custom.ResourceNotFoundException;
+import com.arpit.mythicgates.helper.ValidationHelper;
 import com.arpit.mythicgates.mapper.SkillMapper;
+import com.arpit.mythicgates.model.dto.skill.BulkSkillRequest;
 import com.arpit.mythicgates.model.dto.skill.SkillRequest;
 import com.arpit.mythicgates.model.dto.skill.SkillResponse;
 import com.arpit.mythicgates.model.entity.Character;
@@ -13,10 +15,12 @@ import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.response.ApiResponseUtil;
 import com.arpit.mythicgates.service.SkillService;
 import com.arpit.mythicgates.utils.UuidGenerator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,6 +28,7 @@ import java.util.UUID;
 public class SkillServiceImpl implements SkillService {
     private final SkillRepository skillRepository;
     private final CharacterRepository characterRepository;
+    private final ValidationHelper validationHelper;
 
     @Override
     public ResponseEntity<ApiResponse<SkillResponse>> createSkill(UUID characterId, SkillRequest request) {
@@ -52,5 +57,38 @@ public class SkillServiceImpl implements SkillService {
         Skill createdSkill = skillRepository.save(skill);
 
         return ApiResponseUtil.created("Skill added successfully", SkillMapper.toSkillResponseDto(createdSkill));
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponse<List<SkillResponse>>> createSkillsBulk(UUID characterId, BulkSkillRequest request) {
+        Character character = characterRepository.findByPublicId(characterId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Character doesn't exist"));
+
+        validationHelper.validateRequiredSkillSlots(request.skills());
+
+        if (skillRepository.existsByCharacterPublicId(characterId))
+            throw new BadRequestException("This character already has skills");
+
+        List<Skill> skills = request.skills().stream()
+                .map(skillRequest -> Skill.builder()
+                        .publicId(UuidGenerator.generate())
+                        .name(skillRequest.name().trim())
+                        .type(skillRequest.type())
+                        .slot(skillRequest.slot())
+                        .damageMultiplier(skillRequest.damageMultiplier())
+                        .manaCost(skillRequest.manaCost())
+                        .character(character)
+                        .build())
+                .toList();
+
+        List<Skill> savedSkills = skillRepository.saveAll(skills);
+
+        List<SkillResponse> response = savedSkills.stream()
+                .map(SkillMapper::toSkillResponseDto)
+                .toList();
+
+        return ApiResponseUtil.created("Skills added successfully", response);
     }
 }

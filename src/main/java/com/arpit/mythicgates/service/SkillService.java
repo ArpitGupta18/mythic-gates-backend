@@ -1,5 +1,6 @@
 package com.arpit.mythicgates.service;
 
+import com.arpit.mythicgates.model.dto.skill.BulkSkillRequest;
 import com.arpit.mythicgates.model.dto.skill.SkillRequest;
 import com.arpit.mythicgates.model.dto.skill.SkillResponse;
 import com.arpit.mythicgates.response.ApiResponse;
@@ -10,4 +11,5 @@ import java.util.UUID;
 
 public interface SkillService {
     ResponseEntity<ApiResponse<SkillResponse>> createSkill(UUID characterId, SkillRequest request);
+    ResponseEntity<ApiResponse<List<SkillResponse>>> createSkillsBulk(UUID characterId, BulkSkillRequest request);
 }
