@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,5 +37,20 @@ public class SkillController {
             @Valid @RequestBody BulkSkillRequest request
     ) {
         return skillService.createSkillsBulk(id, request);
+    }
+
+    @GetMapping("/characters/{id}/skills")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<ApiResponse<List<SkillResponse>>> getSkillsByCharacter(
+            @PathVariable UUID id
+    ) {
+        return skillService.getSkillsByCharacter(id);
+    }
+
+    @GetMapping("/skills/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<ApiResponse<SkillResponse>> getSkill(
+            @PathVariable UUID id) {
+        return skillService.getSkill(id);
     }
 }

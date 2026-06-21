@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface SkillService {
     ResponseEntity<ApiResponse<SkillResponse>> createSkill(UUID characterId, SkillRequest request);
     ResponseEntity<ApiResponse<List<SkillResponse>>> createSkillsBulk(UUID characterId, BulkSkillRequest request);
+    ResponseEntity<ApiResponse<List<SkillResponse>>> getSkillsByCharacter(UUID characterId);
+    ResponseEntity<ApiResponse<SkillResponse>> getSkill(UUID skillId);
 }

@@ -91,4 +91,28 @@ public class SkillServiceImpl implements SkillService {
 
         return ApiResponseUtil.created("Skills added successfully", response);
     }
+
+    @Override
+    public ResponseEntity<ApiResponse<List<SkillResponse>>> getSkillsByCharacter(UUID characterId) {
+        characterRepository.findByPublicId(characterId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Character doesn't exist"));
+
+        List<SkillResponse> skills = skillRepository
+                .findByCharacterPublicIdOrderByTypeAscSlotAsc(characterId)
+                .stream()
+                .map(SkillMapper::toSkillResponseDto)
+                .toList();
+
+        return ApiResponseUtil.success("Character skill fetched successfully", skills);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<SkillResponse>> getSkill(UUID skillId) {
+        Skill skill = skillRepository.findSkillByPublicId(skillId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Skill doesn't exist"));
+
+        return ApiResponseUtil.success("Skill fetched successfully", SkillMapper.toSkillResponseDto(skill));
+    }
 }
