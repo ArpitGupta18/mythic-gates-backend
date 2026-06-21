@@ -7,6 +7,7 @@ import com.arpit.mythicgates.mapper.SkillMapper;
 import com.arpit.mythicgates.model.dto.skill.BulkSkillRequest;
 import com.arpit.mythicgates.model.dto.skill.SkillRequest;
 import com.arpit.mythicgates.model.dto.skill.SkillResponse;
+import com.arpit.mythicgates.model.dto.skill.UpdateSkillRequest;
 import com.arpit.mythicgates.model.entity.Character;
 import com.arpit.mythicgates.model.entity.Skill;
 import com.arpit.mythicgates.repository.CharacterRepository;
@@ -109,10 +110,25 @@ public class SkillServiceImpl implements SkillService {
 
     @Override
     public ResponseEntity<ApiResponse<SkillResponse>> getSkill(UUID skillId) {
-        Skill skill = skillRepository.findSkillByPublicId(skillId)
+        Skill skill = skillRepository.findByPublicId(skillId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Skill doesn't exist"));
 
         return ApiResponseUtil.success("Skill fetched successfully", SkillMapper.toSkillResponseDto(skill));
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<SkillResponse>> updateSkill(UUID skillId, UpdateSkillRequest request) {
+        Skill skill = skillRepository.findByPublicId(skillId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Skill doesn't exist"));
+
+        skill.setName(request.name().trim());
+        skill.setDamageMultiplier(request.damageMultiplier());
+        skill.setManaCost(request.manaCost());
+
+        Skill updatedSkill = skillRepository.save(skill);
+
+        return ApiResponseUtil.success("Skill updated successfully", SkillMapper.toSkillResponseDto(updatedSkill));
     }
 }

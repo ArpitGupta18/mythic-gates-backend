@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface SkillRepository extends JpaRepository<Skill, Long> {
-    Optional<Skill> findSkillByPublicId(UUID skillId);
+    Optional<Skill> findByPublicId(UUID skillId);
 
     boolean existsByCharacterPublicIdAndTypeAndSlot(UUID characterId, SkillType type, Integer slot);
 

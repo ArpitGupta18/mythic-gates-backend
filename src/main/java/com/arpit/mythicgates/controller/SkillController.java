@@ -3,6 +3,7 @@ package com.arpit.mythicgates.controller;
 import com.arpit.mythicgates.model.dto.skill.BulkSkillRequest;
 import com.arpit.mythicgates.model.dto.skill.SkillRequest;
 import com.arpit.mythicgates.model.dto.skill.SkillResponse;
+import com.arpit.mythicgates.model.dto.skill.UpdateSkillRequest;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.SkillService;
 import jakarta.validation.Valid;
@@ -52,5 +53,14 @@ public class SkillController {
     public ResponseEntity<ApiResponse<SkillResponse>> getSkill(
             @PathVariable UUID id) {
         return skillService.getSkill(id);
+    }
+
+    @PutMapping("/admin/skills/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<SkillResponse>> updateSkill(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateSkillRequest request
+    ) {
+        return skillService.updateSkill(id, request);
     }
 }
