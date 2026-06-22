@@ -34,11 +34,19 @@ public class BossController {
 
     @PutMapping(value = "/admin/bosses/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<BossResponse>> updateCharacter(
+    public ResponseEntity<ApiResponse<BossResponse>> updateBoss(
             @Valid @ModelAttribute UpdateBossRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image,
             @PathVariable UUID id
     ) {
         return bossService.updateBoss(id, request, image);
+    }
+
+    @DeleteMapping("/admin/bosses/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteBoss(
+            @PathVariable UUID id
+    ) {
+        return bossService.deleteBoss(id);
     }
 }

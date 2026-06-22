@@ -107,4 +107,15 @@ public class BossServiceImpl implements BossService {
 
         return ApiResponseUtil.success("Boss updated successfully", BossMapper.toBossResponseDto(updatedBoss));
     }
+
+    @Override
+    public ResponseEntity<ApiResponse<Void>> deleteBoss(UUID bossId) {
+        Boss boss = bossRepository.findByPublicId(bossId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Boss doesn't exist"));
+
+        bossRepository.delete(boss);
+
+        return ApiResponseUtil.success("Boss deleted successfully", null);
+    }
 }

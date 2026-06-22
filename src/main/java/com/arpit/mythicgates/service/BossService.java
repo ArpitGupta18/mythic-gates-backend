@@ -13,4 +13,6 @@ public interface BossService {
     ResponseEntity<ApiResponse<BossResponse>> createBoss(BossRequest request, MultipartFile image);
 
     ResponseEntity<ApiResponse<BossResponse>> updateBoss(UUID bossId, UpdateBossRequest request, MultipartFile image);
+
+    ResponseEntity<ApiResponse<Void>> deleteBoss(UUID bossId);
 }
