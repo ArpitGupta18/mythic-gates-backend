@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -117,5 +118,26 @@ public class BossServiceImpl implements BossService {
         bossRepository.delete(boss);
 
         return ApiResponseUtil.success("Boss deleted successfully", null);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<List<BossResponse>>> getAllBosses() {
+        List<BossResponse> responses = bossRepository.findAll()
+                .stream()
+                .map(
+                        BossMapper::toBossResponseDto
+                )
+                .toList();
+
+        return ApiResponseUtil.success("All bosses fetched successfully", responses);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<BossResponse>> getBoss(UUID bossId) {
+        Boss boss = bossRepository.findByPublicId(bossId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Boss doesn't exist"));
+
+        return ApiResponseUtil.success("Boss fetched successfully", BossMapper.toBossResponseDto(boss));
     }
 }

@@ -7,6 +7,7 @@ import com.arpit.mythicgates.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface BossService {
@@ -15,4 +16,8 @@ public interface BossService {
     ResponseEntity<ApiResponse<BossResponse>> updateBoss(UUID bossId, UpdateBossRequest request, MultipartFile image);
 
     ResponseEntity<ApiResponse<Void>> deleteBoss(UUID bossId);
+
+    ResponseEntity<ApiResponse<List<BossResponse>>> getAllBosses();
+
+    ResponseEntity<ApiResponse<BossResponse>> getBoss(UUID bossId);
 }

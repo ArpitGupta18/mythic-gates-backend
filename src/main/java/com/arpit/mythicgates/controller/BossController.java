@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -48,5 +49,19 @@ public class BossController {
             @PathVariable UUID id
     ) {
         return bossService.deleteBoss(id);
+    }
+
+    @GetMapping("/bosses")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<ApiResponse<List<BossResponse>>> getAllBosses() {
+        return bossService.getAllBosses();
+    }
+
+    @GetMapping("/bosses/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public ResponseEntity<ApiResponse<BossResponse>> getBoss(
+            @PathVariable("id") UUID bossId
+    ) {
+        return bossService.getBoss(bossId);
     }
 }
