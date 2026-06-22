@@ -5,6 +5,7 @@ import com.arpit.mythicgates.model.dto.character.CharacterResponse;
 import com.arpit.mythicgates.model.dto.character.UpdateCharacterRequest;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.CharacterService;
+import com.arpit.mythicgates.service.UserCharacterService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -21,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CharacterController {
     private final CharacterService characterService;
+    private final UserCharacterService userCharacterService;
 
     @PostMapping(value = "/admin/characters", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
@@ -63,5 +65,12 @@ public class CharacterController {
         return characterService.getCharacter(characterId);
     }
 
+    @PostMapping("/characters/{id}/unlock")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<Void>> unlockCharacter(
+            @PathVariable UUID id
+    ) {
+        return userCharacterService.unlockCharacter(id);
+    }
 
 }
