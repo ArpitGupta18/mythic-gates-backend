@@ -2,6 +2,6 @@ package com.arpit.mythicgates.service;
 
 import org.springframework.web.multipart.MultipartFile;
 
-public interface CloudinaryService {
+public interface ImageStorageService {
     String uploadImage(MultipartFile file);
 }

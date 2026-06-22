@@ -28,7 +28,7 @@ public class CharacterController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CharacterResponse>> createCharacter(
             @Valid @ModelAttribute CharacterRequest request,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @RequestPart(value = "image") MultipartFile image
     ) {
         return characterService.addCharacter(request, image);
     }

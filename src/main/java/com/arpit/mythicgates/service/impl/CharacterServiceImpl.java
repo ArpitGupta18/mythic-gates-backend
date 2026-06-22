@@ -3,20 +3,20 @@ package com.arpit.mythicgates.service.impl;
 import com.arpit.mythicgates.exception.custom.BadRequestException;
 import com.arpit.mythicgates.exception.custom.CharacterAlreadyExistsException;
 import com.arpit.mythicgates.exception.custom.ResourceNotFoundException;
-import com.arpit.mythicgates.helper.ImageUploadHelper;
+import com.arpit.mythicgates.helper.ImageValidator;
 import com.arpit.mythicgates.mapper.CharacterMapper;
 import com.arpit.mythicgates.model.dto.character.CharacterRequest;
 import com.arpit.mythicgates.model.dto.character.CharacterResponse;
 import com.arpit.mythicgates.model.dto.character.UpdateCharacterRequest;
 import com.arpit.mythicgates.model.entity.Character;
 import com.arpit.mythicgates.repository.CharacterRepository;
-import com.arpit.mythicgates.repository.UserRepository;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.response.ApiResponseUtil;
 import com.arpit.mythicgates.service.CharacterService;
-import com.arpit.mythicgates.service.CloudinaryService;
+import com.arpit.mythicgates.service.ImageStorageService;
 import com.arpit.mythicgates.utils.UuidGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,17 +29,22 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CharacterServiceImpl implements CharacterService {
     private final CharacterRepository characterRepository;
-    private final CloudinaryService cloudinaryService;
-    private final ImageUploadHelper imageUploadHelper;
+    private final @Qualifier("cloudinaryService") ImageStorageService imageStorageService;
+    private final ImageValidator imageValidator;
 
     @Override
     public ResponseEntity<ApiResponse<CharacterResponse>> addCharacter(CharacterRequest request, MultipartFile image) {
+        if (image == null || image.isEmpty())
+            throw new BadRequestException("Character image is required");
+
         String name = request.name().trim();
         if (characterRepository.existsByNameIgnoreCase(name)) {
             throw new CharacterAlreadyExistsException("Character with this name already exists");
         }
 
-        String imageUrl = imageUploadHelper.uploadImageToCloudinary(image);
+        imageValidator.validateImage(image);
+
+        String imageUrl = imageStorageService.uploadImage(image);
 
         Character character = Character.builder()
                 .publicId(UuidGenerator.generate())
@@ -69,20 +74,18 @@ public class CharacterServiceImpl implements CharacterService {
                         new ResourceNotFoundException("Character doesn't exists"));
 
         String name = request.name().trim();
+
         if (!characterToUpdate.getName().equalsIgnoreCase(name) && characterRepository.existsByNameIgnoreCase(name)) {
             throw new CharacterAlreadyExistsException("Character with this name already exists");
         }
 
-        if (image != null && !image.isEmpty()) {
-            if (!image.getContentType().startsWith("image/")) {
-                throw new BadRequestException("Only image files are allowed");
-            }
+        imageValidator.validateImage(image);
 
-            if (image.getSize() > 10 * 1024 * 1024) {
-                throw new BadRequestException("Image size cannot exceed 10MB");
-            }
-
-            characterToUpdate.setImageUrl(cloudinaryService.uploadImage(image));
+        String imageUrl = null;
+        if (image == null || image.isEmpty()) {
+            imageUrl = characterToUpdate.getImageUrl();
+        } else {
+            imageUrl = imageStorageService.uploadImage(image);
         }
 
         characterToUpdate.setName(request.name());
@@ -95,6 +98,7 @@ public class CharacterServiceImpl implements CharacterService {
         characterToUpdate.setCritChance(request.critChance());
         characterToUpdate.setDodgeChance(request.dodgeChance());
         characterToUpdate.setPrice(request.price());
+        characterToUpdate.setImageUrl(imageUrl);
         characterToUpdate.setStarter(request.isStarter());
         characterToUpdate.setUpdatedAt(LocalDateTime.now());
 

@@ -1,9 +1,11 @@
 package com.arpit.mythicgates.service.impl;
 
+import com.arpit.mythicgates.exception.custom.BadRequestException;
 import com.arpit.mythicgates.exception.custom.ImageUploadFailedException;
-import com.arpit.mythicgates.service.CloudinaryService;
+import com.arpit.mythicgates.service.ImageStorageService;
 import com.cloudinary.Cloudinary;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,7 +14,8 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class CloudinaryServiceImpl implements CloudinaryService {
+@Qualifier("cloudinaryService")
+public class CloudinaryServiceImpl implements ImageStorageService {
     private final Cloudinary cloudinary;
 
     @Override
