@@ -52,10 +52,6 @@ public class UserCharacterServiceImpl implements UserCharacterService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Character doesn't exist"));
 
-        System.out.println("-------------------------------------------------------");
-        System.out.println(character.getPublicId());
-        System.out.println(character.getId());
-        System.out.println(user.getId());
         if (userCharacterRepository.existsByUserIdAndCharacterId(user.getId(), character.getId())) {
             throw new BadRequestException("Character already unlocked");
         }
