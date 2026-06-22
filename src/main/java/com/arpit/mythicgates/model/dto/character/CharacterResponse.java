@@ -19,6 +19,7 @@ public record CharacterResponse(
         BigDecimal dodgeChance,
         Integer price,
         String imageUrl,
+        Boolean isStarter,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

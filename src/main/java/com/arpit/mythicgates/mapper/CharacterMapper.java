@@ -22,6 +22,7 @@ public class CharacterMapper {
                 character.getDodgeChance(),
                 character.getPrice(),
                 character.getImageUrl(),
+                character.isStarter(),
                 character.getCreatedAt(),
                 character.getUpdatedAt()
         );

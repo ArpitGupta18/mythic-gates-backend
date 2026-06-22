@@ -64,6 +64,7 @@ public class CharacterServiceImpl implements CharacterService {
                 .dodgeChance(request.dodgeChance())
                 .price(request.price())
                 .imageUrl(imageUrl)
+                .isStarter(request.isStarter())
                 .build();
 
         Character createdCharacter = characterRepository.save(character);
@@ -104,6 +105,7 @@ public class CharacterServiceImpl implements CharacterService {
         characterToUpdate.setCritChance(request.critChance());
         characterToUpdate.setDodgeChance(request.dodgeChance());
         characterToUpdate.setPrice(request.price());
+        characterToUpdate.setStarter(request.isStarter());
         characterToUpdate.setUpdatedAt(LocalDateTime.now());
 
         Character updatedCharacter = characterRepository.save(characterToUpdate);

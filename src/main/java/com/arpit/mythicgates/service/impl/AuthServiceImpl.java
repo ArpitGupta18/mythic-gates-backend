@@ -1,15 +1,21 @@
 package com.arpit.mythicgates.service.impl;
 
+import com.arpit.mythicgates.exception.custom.BadRequestException;
 import com.arpit.mythicgates.exception.custom.UserAlreadyExistsException;
 import com.arpit.mythicgates.mapper.AuthMapper;
 import com.arpit.mythicgates.model.dto.auth.*;
+import com.arpit.mythicgates.model.entity.Character;
 import com.arpit.mythicgates.model.entity.User;
+import com.arpit.mythicgates.model.entity.UserCharacter;
 import com.arpit.mythicgates.model.enums.Role;
+import com.arpit.mythicgates.repository.CharacterRepository;
+import com.arpit.mythicgates.repository.UserCharacterRepository;
 import com.arpit.mythicgates.repository.UserRepository;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.response.ApiResponseUtil;
 import com.arpit.mythicgates.service.AuthService;
 import com.arpit.mythicgates.utils.UuidGenerator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,6 +23,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +35,11 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
     private final JwtService jwtService;
+    private final CharacterRepository characterRepository;
+    private final UserCharacterRepository userCharacterRepository;
 
     @Override
+    @Transactional
     public ResponseEntity<ApiResponse<RegisterResponse>> register(RegisterRequest request) {
         String username = request.username().trim();
         String email = request.email().trim().toLowerCase();
@@ -50,6 +62,8 @@ public class AuthServiceImpl implements AuthService {
         user.setBossesDefeated(0);
 
         User savedUser = userRepository.save(user);
+
+        assignStarterCharacters(savedUser);
 
         RegisterResponse response = AuthMapper.toRegisterResponseDto(savedUser);
         return ApiResponseUtil.created("User registered successfully", response);
@@ -99,5 +113,24 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
+    private void assignStarterCharacters(User user) {
+        List<Character> starterCharacters = characterRepository.findByIsStarterTrue();
+
+        if (starterCharacters.size() != 3) {
+            throw new BadRequestException("Exactly 3 starter characters must be configured");
+        }
+
+        List<UserCharacter> userCharacters = starterCharacters.stream()
+                .map(character -> UserCharacter.builder()
+                        .publicId(UuidGenerator.generate())
+                        .user(user)
+                        .character(character)
+                        .obtainedAt(LocalDateTime.now())
+                        .build()
+                )
+                .toList();
+
+        userCharacterRepository.saveAll(userCharacters);
+    }
 
 }

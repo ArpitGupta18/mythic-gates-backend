@@ -45,6 +45,8 @@ public record CharacterRequest(
 
         @NotNull(message = "Price is required")
         @PositiveOrZero(message = "Price cannot be negative")
-        Integer price
+        Integer price,
+        
+        Boolean isStarter
 ) {
 }
