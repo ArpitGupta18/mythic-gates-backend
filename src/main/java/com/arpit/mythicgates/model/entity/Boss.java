@@ -6,18 +6,16 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "characters")
+@Table(name = "bosses")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Character {
+public class Boss {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,17 +33,11 @@ public class Character {
     @Column(name = "base_health", nullable = false)
     private Integer baseHealth;
 
-    @Column(name = "base_mana", nullable = false)
-    private Integer baseMana;
-
     @Column(nullable = false)
     private Integer attack;
 
     @Column(nullable = false)
     private Integer defense;
-
-    @Column(name = "heal_power", nullable = false)
-    private Integer healPower;
 
     @Column(name = "crit_chance", nullable = false, precision = 5, scale = 2)
     private BigDecimal critChance;
@@ -53,14 +45,23 @@ public class Character {
     @Column(name = "dodge_chance", nullable = false, precision = 5, scale = 2)
     private BigDecimal dodgeChance;
 
-    @Column(nullable = false)
-    private Integer price;
+    @Column(name = "rage_threshold", nullable = false, precision = 5, scale = 2)
+    private BigDecimal rageThreshold;
+
+    @Column(name = "reward_min", nullable = false)
+    private Integer rewardMin;
+
+    @Column(name = "reward_max", nullable = false)
+    private Integer rewardMax;
+
+    @Column(name = "heal_interval", nullable = false)
+    private Integer healInterval;
+
+    @Column(name = "heal_percentage", nullable = false, precision = 5, scale = 2)
+    private BigDecimal healPercentage;
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;
-
-    @Column(name = "is_starter", nullable = false)
-    private boolean isStarter = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -68,8 +69,6 @@ public class Character {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "character", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Skill> skills = new ArrayList<>();
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

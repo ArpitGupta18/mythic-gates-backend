@@ -3,6 +3,7 @@ package com.arpit.mythicgates.service.impl;
 import com.arpit.mythicgates.exception.custom.BadRequestException;
 import com.arpit.mythicgates.exception.custom.CharacterAlreadyExistsException;
 import com.arpit.mythicgates.exception.custom.ResourceNotFoundException;
+import com.arpit.mythicgates.helper.ImageUploadHelper;
 import com.arpit.mythicgates.mapper.CharacterMapper;
 import com.arpit.mythicgates.model.dto.character.CharacterRequest;
 import com.arpit.mythicgates.model.dto.character.CharacterResponse;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class CharacterServiceImpl implements CharacterService {
     private final CharacterRepository characterRepository;
     private final CloudinaryService cloudinaryService;
+    private final ImageUploadHelper imageUploadHelper;
 
     @Override
     public ResponseEntity<ApiResponse<CharacterResponse>> addCharacter(CharacterRequest request, MultipartFile image) {
@@ -37,19 +39,7 @@ public class CharacterServiceImpl implements CharacterService {
             throw new CharacterAlreadyExistsException("Character with this name already exists");
         }
 
-        String imageUrl = null;
-
-        if (image != null && !image.isEmpty()) {
-            if (!image.getContentType().startsWith("image/")) {
-                throw new BadRequestException("Only image files are allowed");
-            }
-
-            if (image.getSize() > 10 * 1024 * 1024) {
-                throw new BadRequestException("Image size cannot exceed 10MB");
-            }
-
-            imageUrl = cloudinaryService.uploadImage(image);
-        }
+        String imageUrl = imageUploadHelper.uploadImageToCloudinary(image);
 
         Character character = Character.builder()
                 .publicId(UuidGenerator.generate())

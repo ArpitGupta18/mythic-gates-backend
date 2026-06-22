@@ -29,6 +29,11 @@ public class GlobalExceptionHandler {
         return ApiResponseUtil.conflict(null, ex.getMessage());
     }
 
+    @ExceptionHandler(BossAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<String>> handleBossExists(BossAlreadyExistsException ex) {
+        return ApiResponseUtil.conflict(null, ex.getMessage());
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<String>> handleNotFound(ResourceNotFoundException ex) {
         return ApiResponseUtil.notFound(null, ex.getMessage());
