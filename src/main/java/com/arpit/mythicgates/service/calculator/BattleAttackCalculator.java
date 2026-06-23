@@ -18,6 +18,12 @@ public class BattleAttackCalculator {
             Boss boss,
             Skill skill
     ) {
+        boolean dodged = isDodged(boss.getDodgeChance());
+
+        if (dodged) {
+            return new DamageResult(0, false, true);
+        }
+
         int rawDamage = skill.getDamageMultiplier()
                 .multiply(BigDecimal.valueOf(character.getAttack()))
                 .intValue();
@@ -33,7 +39,8 @@ public class BattleAttackCalculator {
 
         return new DamageResult(
                 Math.max(1, finalDamage),
-                critical
+                critical,
+                false
         );
     }
 
@@ -42,6 +49,12 @@ public class BattleAttackCalculator {
             Character character,
             Battle battle
     ) {
+        boolean dodged = isDodged(character.getDodgeChance());
+
+        if (dodged) {
+            return new DamageResult(0, false, true);
+        }
+
         int damage = boss.getAttack() - character.getDefense();
 
         damage = Math.max(1, damage);
@@ -60,7 +73,7 @@ public class BattleAttackCalculator {
             damage *= 2;
         }
 
-        return new DamageResult(Math.max(1, damage), critical);
+        return new DamageResult(Math.max(1, damage), critical, false);
     }
 
     public String healBossIfNeeded(Battle battle, Boss boss) {
@@ -95,5 +108,11 @@ public class BattleAttackCalculator {
         double roll = ThreadLocalRandom.current().nextDouble(0, 100);
 
         return BigDecimal.valueOf(roll).compareTo(critChance) <= 0;
+    }
+
+    private boolean isDodged(BigDecimal dodgeChance) {
+        double roll = ThreadLocalRandom.current().nextDouble(0, 100);
+
+        return BigDecimal.valueOf(roll).compareTo(dodgeChance) <= 0;
     }
 }

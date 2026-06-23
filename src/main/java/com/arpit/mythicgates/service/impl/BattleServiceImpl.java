@@ -87,13 +87,18 @@ public class BattleServiceImpl implements BattleService {
         battle.setBossCurrentHealth(newBossHealth);
         battle.setDamageDealt(battle.getDamageDealt() + playerDamage);
 
-        String playerMessage = character.getName()
-                + " used "
-                + skill.getName()
-                + " and dealt "
-                + playerDamage
-                + " damage."
-                + (playerDamageResult.critical() ? " Critical hit!" : "");
+        String playerMessage;
+        if (playerDamageResult.dodged()) {
+            playerMessage = boss.getName() + " dodged " + character.getName() + "'s attack.";
+        } else {
+            playerMessage = character.getName()
+                    + " used "
+                    + skill.getName()
+                    + " and dealt "
+                    + playerDamage
+                    + " damage."
+                    + (playerDamageResult.critical() ? " Critical hit!" : "");
+        }
 
         String bossMessage = "";
 
@@ -129,11 +134,19 @@ public class BattleServiceImpl implements BattleService {
         if (bossHealMessage != "") {
             bossMessage = bossHealMessage + " ";
         }
-        bossMessage += boss.getName()
-                + " attacked and dealt "
-                + bossDamage
-                + " damage."
-                + (bossDamageResult.critical() ? " Critical hit!" : "");
+
+        if (bossDamageResult.dodged()) {
+            bossMessage += character.getName()
+                    + " dodged "
+                    + boss.getName()
+                    + "'s attack.";
+        } else {
+            bossMessage += boss.getName()
+                    + " attacked and dealt "
+                    + bossDamage
+                    + " damage."
+                    + (bossDamageResult.critical() ? " Critical Hit!" : "");
+        }
 
         if (battle.getPlayerCurrentHealth() <= 0) {
             battleResultCalculator.endBattleAsLost(battle, user);
@@ -213,17 +226,24 @@ public class BattleServiceImpl implements BattleService {
 
         battle.setPlayerCurrentHealth(newPlayerHealth);
 
-        String bossMessage = null;
+        String bossMessage = "";
 
         if (bossHealMessage != "") {
             bossMessage = bossHealMessage + " ";
         }
 
-        bossMessage += boss.getName()
-                + " attacked and dealt "
-                + bossDamage
-                + " damage."
-                + (bossDamageResult.critical() ? " Critical Hit!" : "");
+        if (bossDamageResult.dodged()) {
+            bossMessage += character.getName()
+                    + " dodged "
+                    + boss.getName()
+                    + "'s attack.";
+        } else {
+            bossMessage += boss.getName()
+                    + " attacked and dealt "
+                    + bossDamage
+                    + " damage."
+                    + (bossDamageResult.critical() ? " Critical Hit!" : "");
+        }
 
         if (battle.getPlayerCurrentHealth() <= 0) {
             battleResultCalculator.endBattleAsLost(battle, user);
