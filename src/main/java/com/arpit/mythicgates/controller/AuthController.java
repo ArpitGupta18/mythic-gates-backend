@@ -1,15 +1,14 @@
 package com.arpit.mythicgates.controller;
 
+import com.arpit.mythicgates.exception.custom.BadRequestException;
+import com.arpit.mythicgates.exception.custom.UnauthorizedException;
 import com.arpit.mythicgates.model.dto.auth.*;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,9 +32,17 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<LoginResponse>> refresh(
-            @Valid @RequestBody RefreshTokenRequest request
+            @CookieValue(name = "refreshToken", required = false) String refreshToken
     ) {
-        return authService.refreshToken(request);
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new UnauthorizedException("Refresh token missing");
+        }
+        return authService.refreshToken(refreshToken);
     }
 
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout() {
+        return authService.logout();
+    }
 }

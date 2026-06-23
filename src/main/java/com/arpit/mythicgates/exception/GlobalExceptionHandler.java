@@ -44,6 +44,11 @@ public class GlobalExceptionHandler {
         return ApiResponseUtil.badRequest(null, ex.getMessage());
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse<String>> handleUnauthorizedRequest(UnauthorizedException ex) {
+        return ApiResponseUtil.unauthorized(null, ex.getMessage());
+    }
+
     @ExceptionHandler(ImageUploadFailedException.class)
     public ResponseEntity<ApiResponse<String>> handleImageUploadFail(ImageUploadFailedException ex) {
         return ApiResponseUtil.badRequest(null, ex.getMessage());

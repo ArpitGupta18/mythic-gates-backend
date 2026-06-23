@@ -1,6 +1,7 @@
 package com.arpit.mythicgates.service.impl;
 
 import com.arpit.mythicgates.exception.custom.BadRequestException;
+import com.arpit.mythicgates.exception.custom.UnauthorizedException;
 import com.arpit.mythicgates.exception.custom.UserAlreadyExistsException;
 import com.arpit.mythicgates.mapper.AuthMapper;
 import com.arpit.mythicgates.model.dto.auth.*;
@@ -15,8 +16,12 @@ import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.response.ApiResponseUtil;
 import com.arpit.mythicgates.service.AuthService;
 import com.arpit.mythicgates.utils.UuidGenerator;
+import io.jsonwebtoken.JwtException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -85,32 +90,57 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-        LoginResponse response = new LoginResponse(accessToken, refreshToken);
+        ResponseCookie refreshCookie = createRefreshTokenCookie(refreshToken);
 
-        return ApiResponseUtil.success("Login success", response);
+        LoginResponse response = new LoginResponse(accessToken);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(new ApiResponse<>(200, "Login success", response, null));
+
     }
 
     @Override
-    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(RefreshTokenRequest request) {
-        String refreshToken = request.refreshToken();
+    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(String refreshToken) {
+        try {
 
-        String username = jwtService.extractUsername(refreshToken);
+            String username = jwtService.extractUsername(refreshToken);
 
-        UserDetails userDetails =
-                userDetailsService.loadUserByUsername(username);
+            UserDetails userDetails =
+                    userDetailsService.loadUserByUsername(username);
 
-        if (!jwtService.isTokenValid(refreshToken, userDetails)) {
-            throw new RuntimeException("Invalid refresh token");
+            if (!jwtService.isTokenValid(refreshToken, userDetails)) {
+                throw new RuntimeException("Invalid refresh token");
+            }
+
+            String newAccessToken = jwtService.generateAccessToken(userDetails);
+
+            LoginResponse response = new LoginResponse(newAccessToken);
+
+            return ApiResponseUtil.success(
+                    "Token refreshed successfully",
+                    response
+            );
+        } catch (JwtException e) {
+            throw new UnauthorizedException("Invalid or expired refresh token");
         }
+    }
 
-        String newAccessToken = jwtService.generateAccessToken(userDetails);
+    @Override
+    public ResponseEntity<ApiResponse<Void>> logout() {
+        ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/api/auth/refresh")
+                .maxAge(0)
+                .build();
 
-        LoginResponse response = new LoginResponse(newAccessToken, refreshToken);
-
-        return ApiResponseUtil.success(
-                "Token refreshed successfully",
-                response
-        );
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .body(new ApiResponse<>(200, "Logout success", null, null));
     }
 
     private void assignStarterCharacters(User user) {
@@ -131,6 +161,16 @@ public class AuthServiceImpl implements AuthService {
                 .toList();
 
         userCharacterRepository.saveAll(userCharacters);
+    }
+
+    private ResponseCookie createRefreshTokenCookie(String refreshToken) {
+        return ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .path("/api/auth/refresh")
+                .maxAge(7 * 24 * 60 * 60)
+                .build();
     }
 
 }

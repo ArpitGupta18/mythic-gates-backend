@@ -9,5 +9,7 @@ public interface AuthService {
 
     ResponseEntity<ApiResponse<LoginResponse>> login(LoginRequest request);
 
-    ResponseEntity<ApiResponse<LoginResponse>> refreshToken(RefreshTokenRequest request);
+    ResponseEntity<ApiResponse<LoginResponse>> refreshToken(String refreshToken);
+
+    ResponseEntity<ApiResponse<Void>> logout();
 }
