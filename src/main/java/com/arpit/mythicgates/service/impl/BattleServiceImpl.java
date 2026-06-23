@@ -90,7 +90,7 @@ public class BattleServiceImpl implements BattleService {
 
         String playerMessage = character.getName() + " used " + skill.getName() + " and dealt " + playerDamage + " damage";
 
-        String bossMessage = null;
+        String bossMessage = "";
 
         if (battle.getBossCurrentHealth() <= 0) {
             battleResultCalculator.endBattleAsWon(battle, user);
@@ -108,6 +108,8 @@ public class BattleServiceImpl implements BattleService {
             return ApiResponseUtil.success("Battle won", response);
         }
 
+        String bossHealMessage = battleAttackCalculator.healBossIfNeeded(battle, boss);
+
         int bossDamage = battleAttackCalculator.calculateBossDamage(boss, character, battle);
 
         int newPlayerHealth = Math.max(
@@ -117,7 +119,10 @@ public class BattleServiceImpl implements BattleService {
 
         battle.setPlayerCurrentHealth(newPlayerHealth);
 
-        bossMessage = boss.getName() + " attacked and dealt " + bossDamage + " damage";
+        if (bossHealMessage != "") {
+            bossMessage = bossHealMessage + " ";
+        }
+        bossMessage += boss.getName() + " attacked and dealt " + bossDamage + " damage";
 
         if (battle.getPlayerCurrentHealth() <= 0) {
             battleResultCalculator.endBattleAsLost(battle, user);
@@ -184,6 +189,8 @@ public class BattleServiceImpl implements BattleService {
 
         String playerMessage = character.getName() + " healed for " + actualHealed + " HP";
 
+        String bossHealMessage = battleAttackCalculator.healBossIfNeeded(battle, boss);
+
         int bossDamage = battleAttackCalculator.calculateBossDamage(boss, character, battle);
 
         int newPlayerHealth = Math.max(
@@ -193,7 +200,13 @@ public class BattleServiceImpl implements BattleService {
 
         battle.setPlayerCurrentHealth(newPlayerHealth);
 
-        String bossMessage = boss.getName() + " attacked and dealt " + bossDamage + " damage";
+        String bossMessage = null;
+
+        if (bossHealMessage != "") {
+            bossMessage = bossHealMessage + " ";
+        }
+
+         bossMessage += boss.getName() + " attacked and dealt " + bossDamage + " damage";
 
         if (battle.getPlayerCurrentHealth() <= 0) {
             battleResultCalculator.endBattleAsLost(battle, user);

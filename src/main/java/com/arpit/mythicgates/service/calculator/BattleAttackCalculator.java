@@ -44,4 +44,32 @@ public class BattleAttackCalculator {
 
         return damage;
     }
+
+    public String healBossIfNeeded(Battle battle, Boss boss) {
+        if (battle.getTurnCount() % boss.getHealInterval() != 0) {
+            return "";
+        }
+
+        if (battle.getBossCurrentHealth() >= boss.getBaseHealth()) {
+            return "";
+        }
+
+        int healAmount = BigDecimal.valueOf(boss.getBaseHealth())
+                .multiply(boss.getHealPercentage())
+                .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP)
+                .intValue();
+
+        int oldHealth = battle.getBossCurrentHealth();
+
+        int newHealth = Math.min(
+                boss.getBaseHealth(),
+                oldHealth + healAmount
+        );
+
+        battle.setBossCurrentHealth(newHealth);
+
+        int actualHealed = newHealth - oldHealth;
+
+        return boss.getName() + " healed for " + actualHealed + " HP.";
+    }
 }
