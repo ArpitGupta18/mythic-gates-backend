@@ -44,4 +44,12 @@ public class BattleController {
     ) {
         return battleService.heal(battleId);
     }
+
+    @PostMapping("/{battleId}/restore-mana")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<AttackBattleResponse>> restore(
+            @PathVariable UUID battleId
+    ) {
+        return battleService.restoreMana(battleId);
+    }
 }

@@ -15,4 +15,6 @@ public interface BattleService {
     ResponseEntity<ApiResponse<AttackBattleResponse>> attack(UUID battleId, AttackBattleRequest request);
 
     ResponseEntity<ApiResponse<AttackBattleResponse>> heal(UUID battleId);
+
+    ResponseEntity<ApiResponse<AttackBattleResponse>> restoreMana(UUID battleId);
 }

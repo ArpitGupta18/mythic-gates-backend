@@ -275,6 +275,83 @@ public class BattleServiceImpl implements BattleService {
 
     }
 
+    @Override
+    public ResponseEntity<ApiResponse<AttackBattleResponse>> restoreMana(UUID battleId) {
+        User user = userHelper.getCurrentUser();
+
+        Battle battle = battleRepository.findByPublicId(battleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Battle not found"));
+
+        validateBattleOwner(battle, user);
+        validateBattleOngoing(battle);
+
+        Character character = battle.getUserCharacter().getCharacter();
+        Boss boss = battle.getBoss();
+
+        battle.setPlayerCurrentMana(character.getBaseMana());
+
+        String playerMessage = character.getName()
+                + " restored mana to full.";
+
+        String bossHealMessage = battleAttackCalculator.healBossIfNeeded(battle, boss);
+
+        DamageResult bossDamageResult = battleAttackCalculator.calculateBossDamage(boss, character, battle);
+        int bossDamage = bossDamageResult.damage();
+
+        battle.setPlayerCurrentHealth(
+                Math.max(0, battle.getPlayerCurrentHealth() - bossDamage)
+        );
+
+        String bossMessage = "";
+
+        if (bossHealMessage != null && !bossHealMessage.isBlank()) {
+            bossMessage += bossHealMessage + " ";
+        }
+
+        if (bossDamageResult.dodged()) {
+            bossMessage += character.getName()
+                    + " dodged "
+                    + boss.getName()
+                    + "'s attack.";
+        } else {
+            bossMessage += boss.getName()
+                    + " attacked and dealt "
+                    + bossDamage
+                    + " damage."
+                    + (bossDamageResult.critical() ? " Critical Hit!" : "");
+        }
+
+        if (battle.getPlayerCurrentHealth() <= 0) {
+            battleResultCalculator.endBattleAsLost(battle, user);
+
+            Battle savedBattle = battleRepository.save(battle);
+
+            AttackBattleResponse response = new AttackBattleResponse(
+                    BattleMapper.toBattleResponseDto(savedBattle),
+                    playerMessage,
+                    bossMessage,
+                    true,
+                    BattleStatus.LOST
+            );
+
+            return ApiResponseUtil.success("Battle lost", response);
+        }
+
+        battle.setTurnCount(battle.getTurnCount() + 1);
+
+        Battle savedBattle = battleRepository.save(battle);
+
+        AttackBattleResponse response = new AttackBattleResponse(
+                BattleMapper.toBattleResponseDto(savedBattle),
+                playerMessage,
+                bossMessage,
+                false,
+                BattleStatus.ONGOING
+        );
+
+        return ApiResponseUtil.success("Mana restored", response);
+    }
+
     private ResponseEntity<ApiResponse<BattleResponse>> createNewBattle(
             User user,
             StartBattleRequest request
