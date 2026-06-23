@@ -1,8 +1,11 @@
 package com.arpit.mythicgates.service.impl;
 
+import com.arpit.mythicgates.exception.custom.BadRequestException;
 import com.arpit.mythicgates.exception.custom.ResourceNotFoundException;
 import com.arpit.mythicgates.helper.UserHelper;
 import com.arpit.mythicgates.mapper.BattleMapper;
+import com.arpit.mythicgates.model.dto.battle.AttackBattleRequest;
+import com.arpit.mythicgates.model.dto.battle.AttackBattleResponse;
 import com.arpit.mythicgates.model.dto.battle.BattleResponse;
 import com.arpit.mythicgates.model.dto.battle.StartBattleRequest;
 import com.arpit.mythicgates.model.entity.*;
@@ -10,14 +13,19 @@ import com.arpit.mythicgates.model.entity.Character;
 import com.arpit.mythicgates.model.enums.BattleStatus;
 import com.arpit.mythicgates.repository.BattleRepository;
 import com.arpit.mythicgates.repository.BossRepository;
+import com.arpit.mythicgates.repository.SkillRepository;
 import com.arpit.mythicgates.repository.UserCharacterRepository;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.response.ApiResponseUtil;
 import com.arpit.mythicgates.service.BattleService;
+import com.arpit.mythicgates.service.calculator.BattleAttackCalculator;
+import com.arpit.mythicgates.service.calculator.BattleResultCalculator;
 import com.arpit.mythicgates.utils.UuidGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +34,9 @@ public class BattleServiceImpl implements BattleService {
     private final BattleRepository battleRepository;
     private final UserCharacterRepository userCharacterRepository;
     private final BossRepository bossRepository;
+    private final SkillRepository skillRepository;
+    private final BattleAttackCalculator battleAttackCalculator;
+    private final BattleResultCalculator battleResultCalculator;
 
     @Override
     public ResponseEntity<ApiResponse<BattleResponse>> startBattle(StartBattleRequest request) {
@@ -38,6 +49,109 @@ public class BattleServiceImpl implements BattleService {
                                 BattleMapper.toBattleResponseDto(existingBattle)
                         ))
                 .orElseGet(() -> createNewBattle(user, request));
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<AttackBattleResponse>> attack(UUID battleId, AttackBattleRequest request) {
+        User user = userHelper.getCurrentUser();
+
+        Battle battle = battleRepository.findByPublicId(battleId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Battle not found"));
+
+
+        if (!battle.getUserCharacter().getUser().getId().equals(user.getId())) {
+            throw new ResourceNotFoundException("Battle not found");
+        }
+
+        if (battle.getStatus() != BattleStatus.ONGOING) {
+            throw new BadRequestException("Battle has already ended");
+        }
+
+        Character character = battle.getUserCharacter().getCharacter();
+        Boss boss = battle.getBoss();
+
+        Skill skill = skillRepository
+                .findByPublicIdAndCharacterId(request.skillId(), character.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Skill not found"));
+
+        if (battle.getPlayerCurrentMana() < skill.getManaCost()) {
+            throw new BadRequestException("Not enough mana");
+        }
+
+        battle.setPlayerCurrentMana(
+                battle.getPlayerCurrentMana() - skill.getManaCost()
+        );
+
+        int playerDamage = battleAttackCalculator.calculatePlayerDamage(character, boss, skill);
+
+        int newBossHealth = Math.max(
+                0,
+                battle.getBossCurrentHealth() - playerDamage
+        );
+
+        battle.setBossCurrentHealth(newBossHealth);
+        battle.setDamageDealt(battle.getDamageDealt() + playerDamage);
+
+        String playerMessage = character.getName() + " used " + skill.getName() + " and dealt " + playerDamage + " damage";
+
+        String bossMessage = null;
+
+        if (battle.getBossCurrentHealth() <= 0) {
+            battleResultCalculator.endBattleAsWon(battle, user);
+
+            Battle savedBattle = battleRepository.save(battle);
+
+            AttackBattleResponse response = new AttackBattleResponse(
+                    BattleMapper.toBattleResponseDto(savedBattle),
+                    playerMessage,
+                    bossMessage,
+                    true,
+                    BattleStatus.WON
+            );
+
+            return ApiResponseUtil.success("Battle won", response);
+        }
+
+        int bossDamage = battleAttackCalculator.calculateBossDamage(boss, character, battle);
+
+        int newPlayerHealth = Math.max(
+                0,
+                battle.getPlayerCurrentHealth() - bossDamage
+        );
+
+        battle.setPlayerCurrentHealth(newPlayerHealth);
+
+        bossMessage = boss.getName() + " attacked and dealt " + bossDamage + " damage";
+
+        if (battle.getPlayerCurrentHealth() <= 0) {
+            battleResultCalculator.endBattleAsLost(battle, user);
+
+            Battle savedBattle = battleRepository.save(battle);
+
+            AttackBattleResponse response = new AttackBattleResponse(
+                    BattleMapper.toBattleResponseDto(savedBattle),
+                    playerMessage,
+                    bossMessage,
+                    true,
+                    BattleStatus.LOST
+            );
+
+            return ApiResponseUtil.success("Battle lost", response);
+        }
+
+        battle.setTurnCount(battle.getTurnCount() + 1);
+        Battle savedBattle = battleRepository.save(battle);
+
+        AttackBattleResponse response = new AttackBattleResponse(
+                BattleMapper.toBattleResponseDto(savedBattle),
+                playerMessage,
+                bossMessage,
+                false,
+                BattleStatus.ONGOING
+        );
+        return ApiResponseUtil.success("Attack completed", response);
     }
 
     private ResponseEntity<ApiResponse<BattleResponse>> createNewBattle(

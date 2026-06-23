@@ -1,5 +1,7 @@
 package com.arpit.mythicgates.controller;
 
+import com.arpit.mythicgates.model.dto.battle.AttackBattleRequest;
+import com.arpit.mythicgates.model.dto.battle.AttackBattleResponse;
 import com.arpit.mythicgates.model.dto.battle.BattleResponse;
 import com.arpit.mythicgates.model.dto.battle.StartBattleRequest;
 import com.arpit.mythicgates.response.ApiResponse;
@@ -8,10 +10,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/battles")
@@ -23,7 +24,16 @@ public class BattleController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponse<BattleResponse>> startBattle(
             @Valid @RequestBody StartBattleRequest request
-            ) {
+    ) {
         return battleService.startBattle(request);
+    }
+
+    @PostMapping("/{battleId}/attack")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<AttackBattleResponse>> attack(
+            @PathVariable UUID battleId,
+            @Valid @RequestBody AttackBattleRequest request
+    ) {
+        return battleService.attack(battleId, request);
     }
 }

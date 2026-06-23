@@ -18,4 +18,6 @@ public interface SkillRepository extends JpaRepository<Skill, Long> {
     boolean existsByCharacterPublicId(UUID characterId);
 
     List<Skill> findByCharacterPublicIdOrderByTypeAscSlotAsc(UUID characterId);
+
+    Optional<Skill> findByPublicIdAndCharacterId(UUID skillId, Long characterId);
 }
