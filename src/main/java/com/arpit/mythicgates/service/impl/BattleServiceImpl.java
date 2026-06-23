@@ -4,10 +4,7 @@ import com.arpit.mythicgates.exception.custom.BadRequestException;
 import com.arpit.mythicgates.exception.custom.ResourceNotFoundException;
 import com.arpit.mythicgates.helper.UserHelper;
 import com.arpit.mythicgates.mapper.BattleMapper;
-import com.arpit.mythicgates.model.dto.battle.AttackBattleRequest;
-import com.arpit.mythicgates.model.dto.battle.AttackBattleResponse;
-import com.arpit.mythicgates.model.dto.battle.BattleResponse;
-import com.arpit.mythicgates.model.dto.battle.StartBattleRequest;
+import com.arpit.mythicgates.model.dto.battle.*;
 import com.arpit.mythicgates.model.entity.*;
 import com.arpit.mythicgates.model.entity.Character;
 import com.arpit.mythicgates.model.enums.BattleStatus;
@@ -78,7 +75,9 @@ public class BattleServiceImpl implements BattleService {
                 battle.getPlayerCurrentMana() - skill.getManaCost()
         );
 
-        int playerDamage = battleAttackCalculator.calculatePlayerDamage(character, boss, skill);
+        DamageResult playerDamageResult = battleAttackCalculator.calculatePlayerDamage(character, boss, skill);
+
+        int playerDamage = playerDamageResult.damage();
 
         int newBossHealth = Math.max(
                 0,
@@ -88,7 +87,13 @@ public class BattleServiceImpl implements BattleService {
         battle.setBossCurrentHealth(newBossHealth);
         battle.setDamageDealt(battle.getDamageDealt() + playerDamage);
 
-        String playerMessage = character.getName() + " used " + skill.getName() + " and dealt " + playerDamage + " damage";
+        String playerMessage = character.getName()
+                + " used "
+                + skill.getName()
+                + " and dealt "
+                + playerDamage
+                + " damage."
+                + (playerDamageResult.critical() ? " Critical hit!" : "");
 
         String bossMessage = "";
 
@@ -110,7 +115,9 @@ public class BattleServiceImpl implements BattleService {
 
         String bossHealMessage = battleAttackCalculator.healBossIfNeeded(battle, boss);
 
-        int bossDamage = battleAttackCalculator.calculateBossDamage(boss, character, battle);
+        DamageResult bossDamageResult = battleAttackCalculator.calculateBossDamage(boss, character, battle);
+
+        int bossDamage = bossDamageResult.damage();
 
         int newPlayerHealth = Math.max(
                 0,
@@ -122,7 +129,11 @@ public class BattleServiceImpl implements BattleService {
         if (bossHealMessage != "") {
             bossMessage = bossHealMessage + " ";
         }
-        bossMessage += boss.getName() + " attacked and dealt " + bossDamage + " damage";
+        bossMessage += boss.getName()
+                + " attacked and dealt "
+                + bossDamage
+                + " damage."
+                + (bossDamageResult.critical() ? " Critical hit!" : "");
 
         if (battle.getPlayerCurrentHealth() <= 0) {
             battleResultCalculator.endBattleAsLost(battle, user);
@@ -191,7 +202,9 @@ public class BattleServiceImpl implements BattleService {
 
         String bossHealMessage = battleAttackCalculator.healBossIfNeeded(battle, boss);
 
-        int bossDamage = battleAttackCalculator.calculateBossDamage(boss, character, battle);
+        DamageResult bossDamageResult = battleAttackCalculator.calculateBossDamage(boss, character, battle);
+
+        int bossDamage = bossDamageResult.damage();
 
         int newPlayerHealth = Math.max(
                 0,
@@ -206,7 +219,11 @@ public class BattleServiceImpl implements BattleService {
             bossMessage = bossHealMessage + " ";
         }
 
-         bossMessage += boss.getName() + " attacked and dealt " + bossDamage + " damage";
+        bossMessage += boss.getName()
+                + " attacked and dealt "
+                + bossDamage
+                + " damage."
+                + (bossDamageResult.critical() ? " Critical Hit!" : "");
 
         if (battle.getPlayerCurrentHealth() <= 0) {
             battleResultCalculator.endBattleAsLost(battle, user);

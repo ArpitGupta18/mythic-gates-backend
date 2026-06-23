@@ -1,5 +1,6 @@
 package com.arpit.mythicgates.service.calculator;
 
+import com.arpit.mythicgates.model.dto.battle.DamageResult;
 import com.arpit.mythicgates.model.entity.Battle;
 import com.arpit.mythicgates.model.entity.Boss;
 import com.arpit.mythicgates.model.entity.Character;
@@ -8,10 +9,11 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class BattleAttackCalculator {
-    public int calculatePlayerDamage(
+    public DamageResult calculatePlayerDamage(
             Character character,
             Boss boss,
             Skill skill
@@ -22,10 +24,20 @@ public class BattleAttackCalculator {
 
         int finalDamage = rawDamage - boss.getDefense();
 
-        return Math.max(1, finalDamage);
+        finalDamage = Math.max(1, finalDamage);
+        boolean critical = isCriticalHit(character.getCritChance());
+
+        if (critical) {
+            finalDamage *= 2;
+        }
+
+        return new DamageResult(
+                Math.max(1, finalDamage),
+                critical
+        );
     }
 
-    public int calculateBossDamage(
+    public DamageResult calculateBossDamage(
             Boss boss,
             Character character,
             Battle battle
@@ -42,7 +54,13 @@ public class BattleAttackCalculator {
             damage = (int) Math.ceil(damage * 1.3);
         }
 
-        return damage;
+        boolean critical = isCriticalHit(boss.getCritChance());
+
+        if (critical) {
+            damage *= 2;
+        }
+
+        return new DamageResult(Math.max(1, damage), critical);
     }
 
     public String healBossIfNeeded(Battle battle, Boss boss) {
@@ -71,5 +89,11 @@ public class BattleAttackCalculator {
         int actualHealed = newHealth - oldHealth;
 
         return boss.getName() + " healed for " + actualHealed + " HP.";
+    }
+
+    private boolean isCriticalHit(BigDecimal critChance) {
+        double roll = ThreadLocalRandom.current().nextDouble(0, 100);
+
+        return BigDecimal.valueOf(roll).compareTo(critChance) <= 0;
     }
 }
