@@ -13,4 +13,6 @@ public interface BattleService {
     ResponseEntity<ApiResponse<BattleResponse>> startBattle(StartBattleRequest request);
 
     ResponseEntity<ApiResponse<AttackBattleResponse>> attack(UUID battleId, AttackBattleRequest request);
+
+    ResponseEntity<ApiResponse<AttackBattleResponse>> heal(UUID battleId);
 }

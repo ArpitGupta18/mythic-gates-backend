@@ -59,14 +59,8 @@ public class BattleServiceImpl implements BattleService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Battle not found"));
 
-
-        if (!battle.getUserCharacter().getUser().getId().equals(user.getId())) {
-            throw new ResourceNotFoundException("Battle not found");
-        }
-
-        if (battle.getStatus() != BattleStatus.ONGOING) {
-            throw new BadRequestException("Battle has already ended");
-        }
+        validateBattleOwner(battle, user);
+        validateBattleOngoing(battle);
 
         Character character = battle.getUserCharacter().getCharacter();
         Boss boss = battle.getBoss();
@@ -154,6 +148,83 @@ public class BattleServiceImpl implements BattleService {
         return ApiResponseUtil.success("Attack completed", response);
     }
 
+    @Override
+    public ResponseEntity<ApiResponse<AttackBattleResponse>> heal(UUID battleId) {
+        User user = userHelper.getCurrentUser();
+
+        Battle battle = battleRepository.findByPublicId(battleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Battle not found"));
+
+        validateBattleOwner(battle, user);
+        validateBattleOngoing(battle);
+
+        Character character = battle.getUserCharacter().getCharacter();
+        Boss boss = battle.getBoss();
+
+        int manaCost = (int) Math.max(20, character.getHealPower() / 3);
+
+        if (battle.getPlayerCurrentMana() < manaCost) {
+            throw new BadRequestException("Not enough mana to heal");
+        }
+
+        battle.setPlayerCurrentMana(
+                battle.getPlayerCurrentMana() - manaCost
+        );
+
+        int oldHealth = battle.getPlayerCurrentHealth();
+
+        int newHealth = Math.min(
+                character.getBaseHealth(),
+                oldHealth + character.getHealPower()
+        );
+
+        battle.setPlayerCurrentHealth(newHealth);
+
+        int actualHealed = newHealth - oldHealth;
+
+        String playerMessage = character.getName() + " healed for " + actualHealed + " HP";
+
+        int bossDamage = battleAttackCalculator.calculateBossDamage(boss, character, battle);
+
+        int newPlayerHealth = Math.max(
+                0,
+                battle.getPlayerCurrentHealth() - bossDamage
+        );
+
+        battle.setPlayerCurrentHealth(newPlayerHealth);
+
+        String bossMessage = boss.getName() + " attacked and dealt " + bossDamage + " damage";
+
+        if (battle.getPlayerCurrentHealth() <= 0) {
+            battleResultCalculator.endBattleAsLost(battle, user);
+
+            Battle savedBattle = battleRepository.save(battle);
+
+            AttackBattleResponse response = new AttackBattleResponse(
+                    BattleMapper.toBattleResponseDto(savedBattle),
+                    playerMessage,
+                    bossMessage,
+                    true,
+                    BattleStatus.LOST
+            );
+
+            return ApiResponseUtil.success("Battle lost", response);
+        }
+
+        battle.setTurnCount(battle.getTurnCount() + 1);
+        Battle savedBattle = battleRepository.save(battle);
+
+        AttackBattleResponse response = new AttackBattleResponse(
+                BattleMapper.toBattleResponseDto(savedBattle),
+                playerMessage,
+                bossMessage,
+                false,
+                BattleStatus.ONGOING
+        );
+        return ApiResponseUtil.success("Heal completed", response);
+
+    }
+
     private ResponseEntity<ApiResponse<BattleResponse>> createNewBattle(
             User user,
             StartBattleRequest request
@@ -186,5 +257,17 @@ public class BattleServiceImpl implements BattleService {
                 "Battle started successfully",
                 BattleMapper.toBattleResponseDto(savedBattle)
         );
+    }
+
+    private void validateBattleOwner(Battle battle, User user) {
+        if (!battle.getUserCharacter().getUser().getId().equals(user.getId())) {
+            throw new ResourceNotFoundException("Battle not found");
+        }
+    }
+
+    private void validateBattleOngoing(Battle battle) {
+        if (battle.getStatus() != BattleStatus.ONGOING) {
+            throw new BadRequestException("Battle has already ended");
+        }
     }
 }

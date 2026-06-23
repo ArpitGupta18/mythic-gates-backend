@@ -36,4 +36,12 @@ public class BattleController {
     ) {
         return battleService.attack(battleId, request);
     }
+
+    @PostMapping("/{battleId}/heal")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<AttackBattleResponse>> heal(
+            @PathVariable UUID battleId
+    ) {
+        return battleService.heal(battleId);
+    }
 }
