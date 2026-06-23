@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -39,13 +40,19 @@ public class BattleServiceImpl implements BattleService {
     public ResponseEntity<ApiResponse<BattleResponse>> startBattle(StartBattleRequest request) {
         User user = userHelper.getCurrentUser();
 
-        return battleRepository.findByUserCharacterUserIdAndStatus(user.getId(), BattleStatus.ONGOING)
-                .map(existingBattle ->
-                        ApiResponseUtil.success(
-                                "You already have an ongoing battle",
-                                BattleMapper.toBattleResponseDto(existingBattle)
-                        ))
-                .orElseGet(() -> createNewBattle(user, request));
+        Optional<Battle> existingBattle =
+                battleRepository.findByUserCharacterUserIdAndStatus(
+                        user.getId(),
+                        BattleStatus.ONGOING
+                );
+
+        if (existingBattle.isPresent()) {
+            throw new BadRequestException(
+                    "You already have an ongoing battle. Finish or forfeit it before starting a new one."
+            );
+        }
+
+        return createNewBattle(user, request);
     }
 
     @Override
