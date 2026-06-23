@@ -8,20 +8,20 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class BattleRewardCalculator {
-    private static final int PARTICIPATION_REWARD = 10;
-    private static final int DEFEAT_BONUS = 20;
 
     public int calculateGoldEarned(
             Boss boss,
             BigDecimal damagePercentage,
             boolean bossDefeated
     ) {
+        int PARTICIPATION_REWARD = 10;
         int baseReward = bossDefeated
                 ? calculateRandomVictoryReward(boss)
                 : PARTICIPATION_REWARD;
 
         int damageBonus = calculateDamageBonus(boss, damagePercentage);
 
+        int DEFEAT_BONUS = 20;
         int defeatBonus = bossDefeated ? DEFEAT_BONUS : 0;
 
         return baseReward + damageBonus + defeatBonus;
@@ -39,17 +39,17 @@ public class BattleRewardCalculator {
         int rewardRange = boss.getRewardMax() - boss.getRewardMin();
 
         if (damagePercentage.compareTo(BigDecimal.valueOf(75)) >= 0) {
-            return (int) (rewardRange * 0.50);
+            return (int) (rewardRange * 1.10);
         }
 
         if (damagePercentage.compareTo(BigDecimal.valueOf(50)) >= 0) {
-            return (int) (rewardRange * 0.30);
+            return (int) (rewardRange * 0.75);
         }
 
         if (damagePercentage.compareTo(BigDecimal.valueOf(25)) >= 0) {
-            return (int) (rewardRange * 0.15);
+            return (int) (rewardRange * 0.35);
         }
 
-        return 0;
+        return (int) (rewardRange * 0.15);
     }
 }

@@ -4,6 +4,7 @@ import com.arpit.mythicgates.model.entity.Battle;
 import com.arpit.mythicgates.model.entity.User;
 import com.arpit.mythicgates.model.enums.BattleStatus;
 import com.arpit.mythicgates.service.EconomyService;
+import com.arpit.mythicgates.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ import java.math.RoundingMode;
 public class BattleResultCalculator {
     private final BattleRewardCalculator battleRewardCalculator;
     private final EconomyService economyService;
-//    private final UserService userService;
+    private final UserService userService;
 
     public void endBattleAsWon(Battle battle, User user) {
         battle.setStatus(BattleStatus.WON);
@@ -29,7 +30,7 @@ public class BattleResultCalculator {
         battle.setGoldEarned(goldEarned);
 
         economyService.addGold(user.getUsername(), goldEarned);
-//        userService.incrementBossDefeated(user.getId());
+        userService.incrementBossDefeated(user);
     }
 
     public void endBattleAsLost(Battle battle, User user) {
