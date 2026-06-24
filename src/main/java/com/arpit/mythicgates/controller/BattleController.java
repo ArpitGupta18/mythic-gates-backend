@@ -55,11 +55,13 @@ public class BattleController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponse<List<BattleResponse>>> getMyBattles() {
         return battleService.getMyBattles();
     }
 
     @GetMapping("/{battleId}")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponse<BattleResponse>> getBattle(
             @PathVariable UUID battleId
     ) {
@@ -67,6 +69,7 @@ public class BattleController {
     }
 
     @PostMapping("/{battleId}/forfeit")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponse<BattleResponse>> forfeitBattle(
             @PathVariable UUID battleId
     ) {
