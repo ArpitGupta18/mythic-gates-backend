@@ -14,15 +14,13 @@ public class BattleRewardCalculator {
             BigDecimal damagePercentage,
             boolean bossDefeated
     ) {
-        int PARTICIPATION_REWARD = 10;
         int baseReward = bossDefeated
                 ? calculateRandomVictoryReward(boss)
-                : PARTICIPATION_REWARD;
+                : RewardConstants.PARTICIPATION_REWARD;
 
         int damageBonus = calculateDamageBonus(boss, damagePercentage);
 
-        int DEFEAT_BONUS = 20;
-        int defeatBonus = bossDefeated ? DEFEAT_BONUS : 0;
+        int defeatBonus = bossDefeated ? RewardConstants.BOSS_DEFEATED : 0;
 
         return baseReward + damageBonus + defeatBonus;
     }
