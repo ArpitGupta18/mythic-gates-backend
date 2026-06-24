@@ -8,6 +8,7 @@ import com.arpit.mythicgates.mapper.CharacterMapper;
 import com.arpit.mythicgates.model.dto.character.CharacterRequest;
 import com.arpit.mythicgates.model.dto.character.CharacterResponse;
 import com.arpit.mythicgates.model.dto.character.UpdateCharacterRequest;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.model.entity.Character;
 import com.arpit.mythicgates.repository.CharacterRepository;
 import com.arpit.mythicgates.response.ApiResponse;
@@ -17,6 +18,10 @@ import com.arpit.mythicgates.service.ImageStorageService;
 import com.arpit.mythicgates.utils.UuidGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -118,14 +123,33 @@ public class CharacterServiceImpl implements CharacterService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse<List<CharacterResponse>>> getAllCharacters() {
-        List<Character> characters = characterRepository.findAll();
+    public ResponseEntity<ApiResponse<PageResponse<CharacterResponse>>> getAllCharacters(int page, int size, String sortBy, String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
 
-        List<CharacterResponse> response = characters.stream().map(
-                CharacterMapper::toCharacterResponseDto
-        ).toList();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        return ApiResponseUtil.success("All characters fetched successfully", response);
+//        List<Character> characters = characterRepository.findAll();
+
+        Page<Character> characterPage = characterRepository.findAll(pageable);
+
+        List<CharacterResponse> characters = characterPage
+                .getContent()
+                .stream()
+                .map(CharacterMapper::toCharacterResponseDto)
+                .toList();
+
+        PageResponse<CharacterResponse> pageResponse = new PageResponse<>(
+                characters,
+                characterPage.getNumber(),
+                characterPage.getSize(),
+                characterPage.getTotalElements(),
+                characterPage.getTotalPages(),
+                characterPage.isLast()
+        );
+
+        return ApiResponseUtil.success("All characters fetched successfully", pageResponse);
     }
 
     @Override

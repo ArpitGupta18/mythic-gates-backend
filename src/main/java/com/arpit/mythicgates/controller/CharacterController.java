@@ -3,6 +3,7 @@ package com.arpit.mythicgates.controller;
 import com.arpit.mythicgates.model.dto.character.CharacterRequest;
 import com.arpit.mythicgates.model.dto.character.CharacterResponse;
 import com.arpit.mythicgates.model.dto.character.UpdateCharacterRequest;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.CharacterService;
 import com.arpit.mythicgates.service.UserCharacterService;
@@ -53,8 +54,13 @@ public class CharacterController {
 
     @GetMapping("/characters")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<ApiResponse<List<CharacterResponse>>> getAllCharacters() {
-        return characterService.getAllCharacters();
+    public ResponseEntity<ApiResponse<PageResponse<CharacterResponse>>> getAllCharacters(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        return characterService.getAllCharacters(page, size, sortBy, sortDir);
     }
 
     @GetMapping("/characters/{id}")

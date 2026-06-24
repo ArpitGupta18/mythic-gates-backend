@@ -3,6 +3,7 @@ package com.arpit.mythicgates.service;
 import com.arpit.mythicgates.model.dto.character.CharacterRequest;
 import com.arpit.mythicgates.model.dto.character.CharacterResponse;
 import com.arpit.mythicgates.model.dto.character.UpdateCharacterRequest;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.cloudinary.Api;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public interface CharacterService {
 
     ResponseEntity<ApiResponse<Void>> deleteCharacter(UUID characterId);
 
-    ResponseEntity<ApiResponse<List<CharacterResponse>>> getAllCharacters();
+    ResponseEntity<ApiResponse<PageResponse<CharacterResponse>>> getAllCharacters(int page, int size, String sortBy, String sortDir);
 
     ResponseEntity<ApiResponse<CharacterResponse>> getCharacter(UUID characterId);
 }
