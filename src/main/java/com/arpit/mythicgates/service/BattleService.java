@@ -7,6 +7,7 @@ import com.arpit.mythicgates.model.dto.battle.StartBattleRequest;
 import com.arpit.mythicgates.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface BattleService {
@@ -17,4 +18,10 @@ public interface BattleService {
     ResponseEntity<ApiResponse<AttackBattleResponse>> heal(UUID battleId);
 
     ResponseEntity<ApiResponse<AttackBattleResponse>> restoreMana(UUID battleId);
+
+    ResponseEntity<ApiResponse<List<BattleResponse>>> getMyBattles();
+
+    ResponseEntity<ApiResponse<BattleResponse>> getBattle(UUID battleId);
+
+    ResponseEntity<ApiResponse<BattleResponse>> forfeitBattle(UUID battleId);
 }

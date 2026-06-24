@@ -19,4 +19,6 @@ public interface BattleRepository extends JpaRepository<Battle, Long> {
     );
 
     List<Battle> findByUserCharacterUserIdOrderByCreatedAtDesc(Long userId);
+
+    Optional<Battle> findByPublicIdAndUserCharacterUserId(UUID publicId, Long userId);
 }

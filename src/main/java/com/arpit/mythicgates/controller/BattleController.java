@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -51,5 +52,24 @@ public class BattleController {
             @PathVariable UUID battleId
     ) {
         return battleService.restoreMana(battleId);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<BattleResponse>>> getMyBattles() {
+        return battleService.getMyBattles();
+    }
+
+    @GetMapping("/{battleId}")
+    public ResponseEntity<ApiResponse<BattleResponse>> getBattle(
+            @PathVariable UUID battleId
+    ) {
+        return battleService.getBattle(battleId);
+    }
+
+    @PostMapping("/{battleId}/forfeit")
+    public ResponseEntity<ApiResponse<BattleResponse>> forfeitBattle(
+            @PathVariable UUID battleId
+    ) {
+        return battleService.forfeitBattle(battleId);
     }
 }

@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -357,6 +358,59 @@ public class BattleServiceImpl implements BattleService {
         );
 
         return ApiResponseUtil.success("Mana restored", response);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<List<BattleResponse>>> getMyBattles() {
+        User user = userHelper.getCurrentUser();
+
+        List<BattleResponse> response = battleRepository
+                .findByUserCharacterUserIdOrderByCreatedAtDesc(user.getId())
+                .stream()
+                .map(BattleMapper::toBattleResponseDto)
+                .toList();
+
+        return ApiResponseUtil.success(
+                "Battles fetched successfully",
+                response
+        );
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<BattleResponse>> getBattle(UUID battleId) {
+        User user = userHelper.getCurrentUser();
+
+        Battle battle = battleRepository
+                .findByPublicIdAndUserCharacterUserId(battleId, user.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Battle not found"));
+
+        return ApiResponseUtil.success(
+                "Battle fetched successfully",
+                BattleMapper.toBattleResponseDto(battle)
+        );
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<BattleResponse>> forfeitBattle(UUID battleId) {
+        User user = userHelper.getCurrentUser();
+
+        Battle battle = battleRepository
+                .findByPublicIdAndUserCharacterUserId(battleId, user.getId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Battle not found"));
+
+        validateBattleOngoing(battle);
+
+        battle.setStatus(BattleStatus.LOST);
+        battle.setGoldEarned(0);
+
+        Battle savedBattle = battleRepository.save(battle);
+
+        return ApiResponseUtil.success(
+                "Battle forfeited successfully",
+                BattleMapper.toBattleResponseDto(savedBattle)
+        );
     }
 
     private ResponseEntity<ApiResponse<BattleResponse>> createNewBattle(

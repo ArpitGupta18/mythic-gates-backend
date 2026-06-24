@@ -4,6 +4,7 @@ import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.impl.CustomUserDetailsService;
 import com.arpit.mythicgates.service.impl.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,10 +39,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
         String username;
 
+        if (token.isBlank()) {
+            ApiResponse<Void> apiResponse =
+                    new ApiResponse<>(401, "Access token is missing", null, null);
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+
+            objectMapper.writeValue(response.getOutputStream(), apiResponse);
+            return;
+        }
+
         try {
             username = jwtService.extractUsername(token);
         } catch (ExpiredJwtException e) {
             ApiResponse<Void> apiResponse = new ApiResponse<>(401, "JWT Token Expired", null, null);
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+
+            objectMapper.writeValue(response.getOutputStream(), apiResponse);
+            return;
+        } catch (JwtException | IllegalArgumentException e) {
+            ApiResponse<Void> apiResponse =
+                    new ApiResponse<>(401, "Invalid access token", null, null);
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
