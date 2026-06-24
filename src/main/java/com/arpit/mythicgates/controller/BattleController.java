@@ -4,6 +4,7 @@ import com.arpit.mythicgates.model.dto.battle.AttackBattleRequest;
 import com.arpit.mythicgates.model.dto.battle.AttackBattleResponse;
 import com.arpit.mythicgates.model.dto.battle.BattleResponse;
 import com.arpit.mythicgates.model.dto.battle.StartBattleRequest;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.BattleService;
 import jakarta.validation.Valid;
@@ -56,8 +57,13 @@ public class BattleController {
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponse<List<BattleResponse>>> getMyBattles() {
-        return battleService.getMyBattles();
+    public ResponseEntity<ApiResponse<PageResponse<BattleResponse>>> getMyBattles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        return battleService.getMyBattles(page, size, sortBy, sortDir);
     }
 
     @GetMapping("/{battleId}")

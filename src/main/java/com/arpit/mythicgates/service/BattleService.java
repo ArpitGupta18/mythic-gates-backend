@@ -4,10 +4,10 @@ import com.arpit.mythicgates.model.dto.battle.AttackBattleRequest;
 import com.arpit.mythicgates.model.dto.battle.AttackBattleResponse;
 import com.arpit.mythicgates.model.dto.battle.BattleResponse;
 import com.arpit.mythicgates.model.dto.battle.StartBattleRequest;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface BattleService {
@@ -19,7 +19,7 @@ public interface BattleService {
 
     ResponseEntity<ApiResponse<AttackBattleResponse>> restoreMana(UUID battleId);
 
-    ResponseEntity<ApiResponse<List<BattleResponse>>> getMyBattles();
+    ResponseEntity<ApiResponse<PageResponse<BattleResponse>>> getMyBattles(int page, int size, String sortBy, String sortDir);
 
     ResponseEntity<ApiResponse<BattleResponse>> getBattle(UUID battleId);
 

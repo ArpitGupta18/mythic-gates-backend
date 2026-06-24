@@ -5,6 +5,7 @@ import com.arpit.mythicgates.exception.custom.ResourceNotFoundException;
 import com.arpit.mythicgates.helper.UserHelper;
 import com.arpit.mythicgates.mapper.BattleMapper;
 import com.arpit.mythicgates.model.dto.battle.*;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.model.entity.*;
 import com.arpit.mythicgates.model.entity.Character;
 import com.arpit.mythicgates.model.enums.BattleStatus;
@@ -19,6 +20,10 @@ import com.arpit.mythicgates.service.calculator.BattleAttackCalculator;
 import com.arpit.mythicgates.service.calculator.BattleResultCalculator;
 import com.arpit.mythicgates.utils.UuidGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -361,18 +366,34 @@ public class BattleServiceImpl implements BattleService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse<List<BattleResponse>>> getMyBattles() {
+    public ResponseEntity<ApiResponse<PageResponse<BattleResponse>>> getMyBattles(int page, int size, String sortBy, String sortDir) {
         User user = userHelper.getCurrentUser();
 
-        List<BattleResponse> response = battleRepository
-                .findByUserCharacterUserIdOrderByCreatedAtDesc(user.getId())
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Battle> battlePage = battleRepository.findByUserCharacterUserId(user.getId(), pageable);
+        List<BattleResponse> battles = battlePage
+                .getContent()
                 .stream()
                 .map(BattleMapper::toBattleResponseDto)
                 .toList();
 
+        PageResponse<BattleResponse> pageResponse = new PageResponse<>(
+                battles,
+                battlePage.getNumber(),
+                battlePage.getSize(),
+                battlePage.getTotalElements(),
+                battlePage.getTotalPages(),
+                battlePage.isLast()
+        );
+
         return ApiResponseUtil.success(
                 "Battles fetched successfully",
-                response
+                pageResponse
         );
     }
 

@@ -2,6 +2,8 @@ package com.arpit.mythicgates.repository;
 
 import com.arpit.mythicgates.model.entity.Battle;
 import com.arpit.mythicgates.model.enums.BattleStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -21,4 +23,6 @@ public interface BattleRepository extends JpaRepository<Battle, Long> {
     List<Battle> findByUserCharacterUserIdOrderByCreatedAtDesc(Long userId);
 
     Optional<Battle> findByPublicIdAndUserCharacterUserId(UUID publicId, Long userId);
+
+    Page<Battle> findByUserCharacterUserId(Long userId, Pageable pageable);
 }
