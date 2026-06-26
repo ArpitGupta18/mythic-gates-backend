@@ -1,6 +1,7 @@
 package com.arpit.mythicgates.controller;
 
 import com.arpit.mythicgates.model.dto.character.CharacterResponse;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.model.dto.user.UserProfileResponse;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.EconomyService;
@@ -55,8 +56,11 @@ public class UserController {
 
     @GetMapping("/me/characters")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponse<List<CharacterResponse>>> getUserCharacters() {
-        return userCharacterService.getMyCharacters();
+    public ResponseEntity<ApiResponse<PageResponse<CharacterResponse>>> getUserCharacters(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "2") int size
+    ) {
+        return userCharacterService.getMyCharacters(page, size);
     }
 
     @GetMapping("/me")

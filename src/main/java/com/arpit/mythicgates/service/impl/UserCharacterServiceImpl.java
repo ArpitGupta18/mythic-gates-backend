@@ -5,6 +5,7 @@ import com.arpit.mythicgates.exception.custom.ResourceNotFoundException;
 import com.arpit.mythicgates.helper.UserHelper;
 import com.arpit.mythicgates.mapper.CharacterMapper;
 import com.arpit.mythicgates.model.dto.character.CharacterResponse;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.model.entity.Character;
 import com.arpit.mythicgates.model.entity.User;
 import com.arpit.mythicgates.model.entity.UserCharacter;
@@ -16,6 +17,10 @@ import com.arpit.mythicgates.service.UserCharacterService;
 import com.arpit.mythicgates.utils.UuidGenerator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -31,16 +36,29 @@ public class UserCharacterServiceImpl implements UserCharacterService {
     private final CharacterRepository characterRepository;
 
     @Override
-    public ResponseEntity<ApiResponse<List<CharacterResponse>>> getMyCharacters() {
+    public ResponseEntity<ApiResponse<PageResponse<CharacterResponse>>> getMyCharacters(int page, int size) {
+        Sort sort = Sort.by("character_id").ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
         User user = userHelper.getCurrentUser();
 
-        List<UserCharacter> characters = userCharacterRepository.findByUserId(user.getId());
+        Page<UserCharacter> characterPage = userCharacterRepository.findByUserId(user.getId(), pageable);
 
-        List<CharacterResponse> response = characters.stream()
+        List<CharacterResponse> characters = characterPage.getContent().stream()
                 .map(userCharacter -> CharacterMapper.toCharacterResponseDto(userCharacter.getCharacter()))
                 .toList();
 
-        return ApiResponseUtil.success("User character fetched", response);
+        PageResponse<CharacterResponse> pageResponse = new PageResponse<>(
+                characters,
+                characterPage.getNumber(),
+                characterPage.getSize(),
+                characterPage.getTotalElements(),
+                characterPage.getTotalPages(),
+                characterPage.isLast()
+        );
+
+        return ApiResponseUtil.success("User character fetched", pageResponse);
     }
 
     @Override
