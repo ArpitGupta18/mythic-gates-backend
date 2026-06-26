@@ -1,9 +1,11 @@
 package com.arpit.mythicgates.controller;
 
 import com.arpit.mythicgates.model.dto.character.CharacterResponse;
+import com.arpit.mythicgates.model.dto.user.UserProfileResponse;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.EconomyService;
 import com.arpit.mythicgates.service.UserCharacterService;
+import com.arpit.mythicgates.service.UserService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import java.util.List;
 public class UserController {
     private final EconomyService economyService;
     private final UserCharacterService userCharacterService;
+    private final UserService userService;
 
     @PostMapping("/add/gold")
     @PreAuthorize("hasRole('USER')")
@@ -54,5 +57,11 @@ public class UserController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponse<List<CharacterResponse>>> getUserCharacters() {
         return userCharacterService.getMyCharacters();
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<ApiResponse<UserProfileResponse>> getMe() {
+        return userService.getMe();
     }
 }
