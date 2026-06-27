@@ -5,6 +5,7 @@ import com.arpit.mythicgates.model.dto.boss.BossResponse;
 import com.arpit.mythicgates.model.dto.boss.UpdateBossRequest;
 import com.arpit.mythicgates.model.dto.character.CharacterResponse;
 import com.arpit.mythicgates.model.dto.character.UpdateCharacterRequest;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.service.BossService;
 import jakarta.validation.Valid;
@@ -53,8 +54,11 @@ public class BossController {
 
     @GetMapping("/bosses")
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
-    public ResponseEntity<ApiResponse<List<BossResponse>>> getAllBosses() {
-        return bossService.getAllBosses();
+    public ResponseEntity<ApiResponse<PageResponse<BossResponse>>> getAllBosses(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return bossService.getAllBosses(page, size);
     }
 
     @GetMapping("/bosses/{id}")

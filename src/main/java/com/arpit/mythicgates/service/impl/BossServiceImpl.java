@@ -8,6 +8,7 @@ import com.arpit.mythicgates.mapper.BossMapper;
 import com.arpit.mythicgates.model.dto.boss.BossRequest;
 import com.arpit.mythicgates.model.dto.boss.BossResponse;
 import com.arpit.mythicgates.model.dto.boss.UpdateBossRequest;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.model.entity.Boss;
 import com.arpit.mythicgates.repository.BossRepository;
 import com.arpit.mythicgates.response.ApiResponse;
@@ -17,6 +18,10 @@ import com.arpit.mythicgates.service.ImageStorageService;
 import com.arpit.mythicgates.utils.UuidGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -121,15 +126,32 @@ public class BossServiceImpl implements BossService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse<List<BossResponse>>> getAllBosses() {
-        List<BossResponse> responses = bossRepository.findAll()
+    public ResponseEntity<ApiResponse<PageResponse<BossResponse>>> getAllBosses(int page, int size) {
+        Sort sort = Sort.by("rarity").ascending()
+                .and(Sort.by("id").ascending());
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Boss> bossPage = bossRepository.findAll(pageable);
+
+        List<BossResponse> bosses = bossPage
+                .getContent()
                 .stream()
                 .map(
                         BossMapper::toBossResponseDto
                 )
                 .toList();
 
-        return ApiResponseUtil.success("All bosses fetched successfully", responses);
+        PageResponse<BossResponse> pageResponse = new PageResponse<>(
+                bosses,
+                bossPage.getNumber(),
+                bossPage.getSize(),
+                bossPage.getTotalElements(),
+                bossPage.getTotalPages(),
+                bossPage.isLast()
+        );
+
+        return ApiResponseUtil.success("All bosses fetched successfully", pageResponse);
     }
 
     @Override

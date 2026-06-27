@@ -3,6 +3,7 @@ package com.arpit.mythicgates.service;
 import com.arpit.mythicgates.model.dto.boss.BossRequest;
 import com.arpit.mythicgates.model.dto.boss.BossResponse;
 import com.arpit.mythicgates.model.dto.boss.UpdateBossRequest;
+import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,7 +18,7 @@ public interface BossService {
 
     ResponseEntity<ApiResponse<Void>> deleteBoss(UUID bossId);
 
-    ResponseEntity<ApiResponse<List<BossResponse>>> getAllBosses();
+    ResponseEntity<ApiResponse<PageResponse<BossResponse>>> getAllBosses(int page, int size);
 
     ResponseEntity<ApiResponse<BossResponse>> getBoss(UUID bossId);
 }
