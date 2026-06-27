@@ -7,8 +7,12 @@ public class BattleMapper {
     public static BattleResponse toBattleResponseDto(Battle battle) {
         return new BattleResponse(
                 battle.getPublicId(),
+                battle.getUserCharacter().getCharacter().getPublicId(),
                 battle.getUserCharacter().getCharacter().getName(),
+                battle.getUserCharacter().getCharacter().getImageUrl(),
+                battle.getBoss().getPublicId(),
                 battle.getBoss().getName(),
+                battle.getBoss().getImageUrl(),
                 battle.getUserCharacter().getCharacter().getBaseHealth(),
                 battle.getPlayerCurrentHealth(),
                 battle.getUserCharacter().getCharacter().getBaseMana(),

@@ -413,7 +413,7 @@ public class BattleServiceImpl implements BattleService {
     }
 
     @Override
-    public ResponseEntity<ApiResponse<BattleResponse>> forfeitBattle(UUID battleId) {
+    public ResponseEntity<ApiResponse<AttackBattleResponse>> forfeitBattle(UUID battleId) {
         User user = userHelper.getCurrentUser();
 
         Battle battle = battleRepository
@@ -428,9 +428,30 @@ public class BattleServiceImpl implements BattleService {
 
         Battle savedBattle = battleRepository.save(battle);
 
+        AttackBattleResponse response = new AttackBattleResponse(
+                BattleMapper.toBattleResponseDto(savedBattle),
+                "Player forfeited the match",
+                null,
+                true,
+                BattleStatus.LOST
+        );
         return ApiResponseUtil.success(
                 "Battle forfeited successfully",
-                BattleMapper.toBattleResponseDto(savedBattle)
+                response
+        );
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse<BattleResponse>> getOngoingBattle() {
+        User user = userHelper.getCurrentUser();
+        Battle battle = battleRepository
+                .findByUserCharacterUserIdAndStatus(user.getId(), BattleStatus.ONGOING)
+                .orElseThrow(() -> new ResourceNotFoundException("No ongoing battle found"));
+
+        BattleResponse response = BattleMapper.toBattleResponseDto(battle);
+        return ApiResponseUtil.success(
+                "Ongoing battle found",
+                response
         );
     }
 

@@ -7,13 +7,17 @@ import java.util.UUID;
 
 public record BattleResponse(
         UUID battleId,
+        UUID characterId,
         String characterName,
+        String characterImageUrl,
+        UUID bossId,
         String bossName,
+        String bossImageUrl,
         Integer playerMaxHealth,
         Integer playerCurrentHealth,
         Integer playerMaxMana,
         Integer playerCurrentMana,
-        Integer bossMaxHeatlh,
+        Integer bossMaxHealth,
         Integer bossCurrentHealth,
         Integer turnCount,
         Integer damageDealt,

@@ -61,7 +61,7 @@ public class BattleController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir
+            @RequestParam(defaultValue = "desc") String sortDir
     ) {
         return battleService.getMyBattles(page, size, sortBy, sortDir);
     }
@@ -76,9 +76,15 @@ public class BattleController {
 
     @PostMapping("/{battleId}/forfeit")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<ApiResponse<BattleResponse>> forfeitBattle(
+    public ResponseEntity<ApiResponse<AttackBattleResponse>> forfeitBattle(
             @PathVariable UUID battleId
     ) {
         return battleService.forfeitBattle(battleId);
+    }
+
+    @GetMapping("/ongoing")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<ApiResponse<BattleResponse>> getOnGoingBattle() {
+        return battleService.getOngoingBattle();
     }
 }

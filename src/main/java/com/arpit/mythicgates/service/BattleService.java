@@ -23,5 +23,7 @@ public interface BattleService {
 
     ResponseEntity<ApiResponse<BattleResponse>> getBattle(UUID battleId);
 
-    ResponseEntity<ApiResponse<BattleResponse>> forfeitBattle(UUID battleId);
+    ResponseEntity<ApiResponse<AttackBattleResponse>> forfeitBattle(UUID battleId);
+
+    ResponseEntity<ApiResponse<BattleResponse>> getOngoingBattle();
 }

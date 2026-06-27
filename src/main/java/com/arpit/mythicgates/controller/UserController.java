@@ -58,7 +58,7 @@ public class UserController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ApiResponse<PageResponse<CharacterResponse>>> getUserCharacters(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "2") int size
+            @RequestParam(defaultValue = "4") int size
     ) {
         return userCharacterService.getMyCharacters(page, size);
     }
