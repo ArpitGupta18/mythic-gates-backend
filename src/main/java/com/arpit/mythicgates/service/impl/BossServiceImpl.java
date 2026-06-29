@@ -127,8 +127,7 @@ public class BossServiceImpl implements BossService {
 
     @Override
     public ResponseEntity<ApiResponse<PageResponse<BossResponse>>> getAllBosses(int page, int size) {
-        Sort sort = Sort.by("rarity").ascending()
-                .and(Sort.by("id").ascending());
+        Sort sort = (Sort.by("id").ascending());
 
         Pageable pageable = PageRequest.of(page, size, sort);
 

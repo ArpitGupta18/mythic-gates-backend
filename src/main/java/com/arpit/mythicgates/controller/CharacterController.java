@@ -57,7 +57,7 @@ public class CharacterController {
     public ResponseEntity<ApiResponse<PageResponse<CharacterResponse>>> getAllCharacters(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size,
-            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir
     ) {
         return characterService.getAllCharacters(page, size, sortBy, sortDir);
