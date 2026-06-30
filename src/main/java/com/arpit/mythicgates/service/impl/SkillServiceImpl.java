@@ -52,6 +52,7 @@ public class SkillServiceImpl implements SkillService {
                 .slot(request.slot())
                 .damageMultiplier(request.damageMultiplier())
                 .manaCost(request.manaCost())
+                .cooldown(request.cooldown())
                 .character(character)
                 .build();
 
@@ -80,6 +81,7 @@ public class SkillServiceImpl implements SkillService {
                         .slot(skillRequest.slot())
                         .damageMultiplier(skillRequest.damageMultiplier())
                         .manaCost(skillRequest.manaCost())
+                        .cooldown(skillRequest.cooldown())
                         .character(character)
                         .build())
                 .toList();

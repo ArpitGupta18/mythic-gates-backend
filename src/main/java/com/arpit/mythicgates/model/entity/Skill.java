@@ -6,6 +6,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -54,6 +56,17 @@ public class Skill {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "character_id", nullable = false)
     private Character character;
+
+    @Column(nullable = false)
+    private Integer cooldown = 0;
+
+    @Builder.Default
+    @OneToMany(
+            mappedBy = "skill",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<BattleSkillCooldown> battleSkillCooldowns = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

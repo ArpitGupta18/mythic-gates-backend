@@ -9,10 +9,7 @@ import com.arpit.mythicgates.model.dto.pagination.PageResponse;
 import com.arpit.mythicgates.model.entity.*;
 import com.arpit.mythicgates.model.entity.Character;
 import com.arpit.mythicgates.model.enums.BattleStatus;
-import com.arpit.mythicgates.repository.BattleRepository;
-import com.arpit.mythicgates.repository.BossRepository;
-import com.arpit.mythicgates.repository.SkillRepository;
-import com.arpit.mythicgates.repository.UserCharacterRepository;
+import com.arpit.mythicgates.repository.*;
 import com.arpit.mythicgates.response.ApiResponse;
 import com.arpit.mythicgates.response.ApiResponseUtil;
 import com.arpit.mythicgates.service.BattleService;
@@ -41,6 +38,7 @@ public class BattleServiceImpl implements BattleService {
     private final SkillRepository skillRepository;
     private final BattleAttackCalculator battleAttackCalculator;
     private final BattleResultCalculator battleResultCalculator;
+    private final BattleSkillCooldownRepository battleSkillCooldownRepository;
 
     @Override
     public ResponseEntity<ApiResponse<BattleResponse>> startBattle(StartBattleRequest request) {
@@ -80,6 +78,19 @@ public class BattleServiceImpl implements BattleService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Skill not found"));
 
+        BattleSkillCooldown skillCooldown = battleSkillCooldownRepository
+                .findByBattleIdAndSkillId(
+                        battle.getId(), skill.getId()
+                ).orElseThrow(() -> new ResourceNotFoundException("Skill cooldown not found"));
+
+        if (skillCooldown.getRemainingCooldown() > 0) {
+            throw new BadRequestException(
+                    skill.getName() + " is on cooldown for "
+                            + skillCooldown.getRemainingCooldown()
+                            + " more turn(s)."
+            );
+        }
+
         if (battle.getPlayerCurrentMana() < skill.getManaCost()) {
             throw new BadRequestException("Not enough mana");
         }
@@ -112,6 +123,9 @@ public class BattleServiceImpl implements BattleService {
                     + " damage."
                     + (playerDamageResult.critical() ? " Critical hit!" : "");
         }
+
+        skillCooldown.setRemainingCooldown(skill.getCooldown());
+        reduceCooldowns(battle, skill);
 
         String bossMessage = "";
 
@@ -226,6 +240,8 @@ public class BattleServiceImpl implements BattleService {
 
         String playerMessage = character.getName() + " healed for " + actualHealed + " HP";
 
+        reduceCooldowns(battle, null);
+
         String bossHealMessage = battleAttackCalculator.healBossIfNeeded(battle, boss);
 
         DamageResult bossDamageResult = battleAttackCalculator.calculateBossDamage(boss, character, battle);
@@ -241,7 +257,7 @@ public class BattleServiceImpl implements BattleService {
 
         String bossMessage = "";
 
-        if (bossHealMessage != "") {
+        if (bossHealMessage != null && !bossHealMessage.isBlank()) {
             bossMessage = bossHealMessage + " ";
         }
 
@@ -305,6 +321,8 @@ public class BattleServiceImpl implements BattleService {
 
         String playerMessage = character.getName()
                 + " restored mana to full.";
+
+        reduceCooldowns(battle, null);
 
         String bossHealMessage = battleAttackCalculator.healBossIfNeeded(battle, boss);
 
@@ -468,6 +486,10 @@ public class BattleServiceImpl implements BattleService {
 
         Character character = userCharacter.getCharacter();
 
+        List<Skill> skills = skillRepository.findByCharacterPublicIdOrderByTypeAscSlotAsc(
+                character.getPublicId()
+        );
+
         Battle battle = Battle.builder()
                 .publicId(UuidGenerator.generate())
                 .userCharacter(userCharacter)
@@ -480,6 +502,16 @@ public class BattleServiceImpl implements BattleService {
                 .goldEarned(0)
                 .status(BattleStatus.ONGOING)
                 .build();
+
+        for (Skill skill : skills) {
+            BattleSkillCooldown skillCooldown = BattleSkillCooldown.builder()
+                    .battle(battle)
+                    .skill(skill)
+                    .remainingCooldown(0)
+                    .build();
+
+            battle.getSkillCooldowns().add(skillCooldown);
+        }
 
         Battle savedBattle = battleRepository.save(battle);
 
@@ -500,4 +532,20 @@ public class BattleServiceImpl implements BattleService {
             throw new BadRequestException("Battle has already ended");
         }
     }
+    private void reduceCooldowns(Battle battle, Skill usedSkill) {
+        for (BattleSkillCooldown cooldown : battle.getSkillCooldowns()) {
+            if (
+                    usedSkill != null &&
+                    cooldown.getSkill().getId().equals(usedSkill.getId())) {
+                continue;
+            }
+
+            if (cooldown.getRemainingCooldown() > 0) {
+                cooldown.setRemainingCooldown(
+                        cooldown.getRemainingCooldown() - 1
+                );
+            }
+        }
+    }
+
 }

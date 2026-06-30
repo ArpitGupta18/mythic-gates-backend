@@ -1,10 +1,23 @@
 package com.arpit.mythicgates.mapper;
 
 import com.arpit.mythicgates.model.dto.battle.BattleResponse;
+import com.arpit.mythicgates.model.dto.battle.SkillCooldownResponse;
 import com.arpit.mythicgates.model.entity.Battle;
+
+import java.util.List;
 
 public class BattleMapper {
     public static BattleResponse toBattleResponseDto(Battle battle) {
+        List<SkillCooldownResponse> skillCooldowns = battle.getSkillCooldowns()
+                .stream()
+                .map(cooldown -> new SkillCooldownResponse(
+                        cooldown.getSkill().getPublicId(),
+                        cooldown.getSkill().getName(),
+                        cooldown.getSkill().getCooldown(),
+                        cooldown.getRemainingCooldown()
+                ))
+                .toList();
+
         return new BattleResponse(
                 battle.getPublicId(),
                 battle.getUserCharacter().getCharacter().getPublicId(),
@@ -24,7 +37,8 @@ public class BattleMapper {
                 battle.getGoldEarned(),
                 battle.getStatus(),
                 battle.getCreatedAt(),
-                battle.getUpdatedAt()
+                battle.getUpdatedAt(),
+                skillCooldowns
         );
     }
 }

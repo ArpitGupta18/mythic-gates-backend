@@ -14,7 +14,8 @@ public class SkillMapper {
                 entity.getType(),
                 entity.getSlot(),
                 entity.getDamageMultiplier(),
-                entity.getManaCost()
+                entity.getManaCost(),
+                entity.getCooldown()
         );
     }
 }

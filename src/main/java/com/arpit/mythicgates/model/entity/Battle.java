@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -51,6 +53,14 @@ public class Battle {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BattleStatus status;
+
+    @Builder.Default
+    @OneToMany(
+            mappedBy = "battle",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<BattleSkillCooldown> skillCooldowns = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

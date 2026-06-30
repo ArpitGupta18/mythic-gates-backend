@@ -23,6 +23,10 @@ public record SkillRequest(
 
         @NotNull(message = "Mana cost is required")
         @Min(value = 0, message = "Mana cost cannot be negative")
-        Integer manaCost
+        Integer manaCost,
+
+        @NotNull(message = "cooldown turn is required")
+        @Min(value = 0, message = "cooldown turn can not be negative")
+        Integer cooldown
 ) {
 }

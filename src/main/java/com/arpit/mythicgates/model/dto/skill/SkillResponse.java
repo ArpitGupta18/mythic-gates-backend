@@ -11,6 +11,7 @@ public record SkillResponse(
         SkillType type,
         Integer slot,
         BigDecimal damageMultiplier,
-        Integer manaCost
+        Integer manaCost,
+        Integer cooldown
 ) {
 }
