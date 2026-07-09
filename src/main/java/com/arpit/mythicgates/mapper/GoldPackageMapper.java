@@ -12,7 +12,7 @@ public class GoldPackageMapper {
                 entity.getPublicId(),
                 entity.getName(),
                 entity.getGoldAmount(),
-                entity.getPriceAmount(),
+                entity.getPriceAmount().longValue(),
                 entity.getCurrency()
         );
     }

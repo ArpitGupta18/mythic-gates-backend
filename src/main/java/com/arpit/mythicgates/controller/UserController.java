@@ -26,7 +26,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/add/gold")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public String addGold(
             @AuthenticationPrincipal UserDetails user,
             @RequestBody int amount
@@ -37,7 +37,7 @@ public class UserController {
     }
 
     @PostMapping("/deduct/gold")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public String deductGold(
             @AuthenticationPrincipal UserDetails user,
             @RequestBody int amount
